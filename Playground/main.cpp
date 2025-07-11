@@ -1,15 +1,16 @@
 /* main.cpp */
-#include "PixelToVoxel.hpp"
+#include "ptv/PixelToVoxel.hpp"
 #include <iostream>
 
 int main() {
-    std::cout << "Testing PixelToVoxel library..." << std::endl;
+   
     
-    ptv::PixelToVoxel converter;
-    if (converter.convertPixelToVoxel()) {
-        std::cout << "Pixel to Voxel conversion successful!" << std::endl;
-    } else {
-        std::cout << "Pixel to Voxel conversion failed!" << std::endl;
+    ptv::PixelToVoxel ptv;
+
+    std::vector<ptv::FrameInfo> frames = ptv.loadMetadata("data/metadata.json");
+
+    for (const auto& frame : frames) {
+        std::cout << "Frame " << frame.frame_index << " - Camera Index: " << frame.camera_index << " - Camera Position: " << frame.camera_position.X << ", " << frame.camera_position.Y << ", " << frame.camera_position.Z << " - Camera Rotation: " << frame.camera_rotation.X << ", " << frame.camera_rotation.Y << ", " << frame.camera_rotation.Z << " - FOV: " << frame.fov_degrees << " - Image File: " << frame.image_file << std::endl;
     }
     
     return 0;
