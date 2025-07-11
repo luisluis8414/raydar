@@ -53,3 +53,6 @@ Thumbs.db
 
 # Keep premake5 executable
 !bin/premake5
+
+
+data

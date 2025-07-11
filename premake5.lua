@@ -37,9 +37,9 @@ project "PixelToVoxel"
         "pixelToVoxel/include"
     }
 
-project "HelloWorld"
+project "Playground"
     kind "ConsoleApp"
-    location "HelloWorld"
+    location "Playground"
     
     files { "%{prj.location}/**.cpp" }
     
