@@ -1,17 +1,22 @@
 /* main.cpp */
-#include "ptv/PixelToVoxel.hpp"
+#include "PixelToVoxel.hpp"
 #include <iostream>
 
 int main() {
-   
-    
     ptv::PixelToVoxel ptv;
 
-    std::vector<ptv::FrameInfo> frames = ptv.loadMetadata("data/metadata.json");
-
-    for (const auto& frame : frames) {
-        std::cout << "Frame " << frame.frame_index << " - Camera Index: " << frame.camera_index << " - Camera Position: " << frame.camera_position.X << ", " << frame.camera_position.Y << ", " << frame.camera_position.Z << " - Camera Rotation: " << frame.camera_rotation.X << ", " << frame.camera_rotation.Y << ", " << frame.camera_rotation.Z << " - FOV: " << frame.fov_degrees << " - Image File: " << frame.image_file << std::endl;
+    // Load metadata
+    auto camera_frames = ptv.loadMetadata("data/metadata.json");
+    
+    // Print some information about the loaded data
+    std::cout << "Loaded metadata for " << camera_frames.size() << " cameras\n";
+    
+    for (const auto& [camera_id, frames] : camera_frames) {
+        std::cout << "Camera " << camera_id << " has " << frames.size() << " frames\n";
     }
+    
+    // Call the conversion function
+    ptv.convertPixelToVoxel();
     
     return 0;
 }

@@ -34,7 +34,8 @@ project "PixelToVoxel"
     }
     
     includedirs {
-        "pixelToVoxel/include"
+        "pixelToVoxel/include",
+        "deps"
     }
 
 project "Playground"
@@ -45,4 +46,7 @@ project "Playground"
     
     -- Link against PixelToVoxel library
     links { "PixelToVoxel" }
-    includedirs { "pixelToVoxel/include" }
+    includedirs { 
+        "pixelToVoxel/include",
+        "deps"
+    }
