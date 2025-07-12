@@ -72,6 +72,7 @@ make config=release
 ├── Playground/      # Example application
 ├── docs/           # Documentation
 │   └── metadata_format.md  # Metadata file format specification
+├── deps/           # External dependencies
 └── scripts/         # Build and setup scripts
 ```
 
@@ -81,3 +82,27 @@ make config=release
 ## Documentation
 
 - [Metadata File Format](docs/metadata_format.md) - Specification for camera metadata JSON files
+
+## Large Files (Blender Scenes)
+
+This project includes large `.blend` files (e.g., 3D scene with 5 cameras and an f-35) which are tracked using [Git LFS (Large File Storage)](https://git-lfs.github.com/).
+
+### ⚠️ Cloning the Repository
+
+Before cloning the repository, make sure Git LFS is installed:
+
+```bash
+# One-time setup
+git lfs install
+
+# Clone the repository
+git clone https://github.com/luisluis8414/vox_vision.git
+```
+
+If you've already cloned without LFS, run:
+
+```bash
+git lfs pull
+```
+
+**Note:** Blender backup files such as `.blend1` and `.blend@` are excluded via `.gitignore`. Only the primary `.blend` files are tracked and required.
