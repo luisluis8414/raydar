@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <optional>
 
 #include <nlohmann/json.hpp>
 
@@ -10,13 +11,7 @@
 
 namespace ptv {
 
-PixelToVoxel::PixelToVoxel() {
-}
-
-PixelToVoxel::~PixelToVoxel() {
-}
-
-std::map<int, std::vector<FrameInfo>> PixelToVoxel::loadMetadata(const std::string& metadata_file) {
+std::map<int, std::vector<FrameInfo>> loadMetadata(const std::string& metadata_file) {
     std::map<int, std::vector<FrameInfo>> camera_frames;
 
     std::ifstream ifs(metadata_file);
@@ -63,7 +58,7 @@ std::map<int, std::vector<FrameInfo>> PixelToVoxel::loadMetadata(const std::stri
     return camera_frames;
 }   
 
-void PixelToVoxel::load_image(const std::string path, Image& out) {
+void load_image(const std::string& path, Image& out) {
     int width, height, channels;
     unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 
@@ -83,7 +78,7 @@ void PixelToVoxel::load_image(const std::string path, Image& out) {
     stbi_image_free(data);
 }
 
-void PixelToVoxel::generateVoxelGrid(const std::string& metadata_file_path) {
+void generateVoxelGrid(const std::string& metadata_file_path) {
     std::map<int, std::vector<FrameInfo>> camera_frames = loadMetadata(metadata_file_path);
 
     std::vector<float> voxel_grid(VOXEL_GRID_N * VOXEL_GRID_N * VOXEL_GRID_N, 0.f);

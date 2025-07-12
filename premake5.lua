@@ -12,6 +12,21 @@ workspace "VoxVision"
     targetdir "bin/%{cfg.buildcfg}"
     objdir "obj/%{cfg.buildcfg}"
 
+    -- Clang specific configuration
+    filter { "toolset:clang" }
+        buildoptions {
+            "-Wall",
+            "-Wextra",
+            "-std=c++17"
+        }
+        includedirs { 
+            ".",
+            "pixelToVoxel/include",
+            "deps",
+            "/usr/include",
+            "/usr/local/include"
+        }
+
     -- Default configurations
     filter "configurations:Debug"
         defines { "DEBUG" }
@@ -34,9 +49,12 @@ project "PixelToVoxel"
     }
     
     includedirs {
-        "pixelToVoxel/include",
-        "deps"
+        "%{wks.location}/pixelToVoxel/include",
+        "%{wks.location}/deps"
     }
+
+    filter { "toolset:clang" }
+        buildoptions { "-I%{wks.location}/pixelToVoxel/include" }
 
 project "Playground"
     kind "ConsoleApp"

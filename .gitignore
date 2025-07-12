@@ -57,6 +57,7 @@ Makefile
 .idea/
 *.sublime*
 *.code-workspace
+compile_commands.json
 
 # === OS Specific ===
 .DS_Store
@@ -86,3 +87,4 @@ data/
 
 # === Dependencies ===
 deps/
+.cache/
