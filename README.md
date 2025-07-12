@@ -1,6 +1,6 @@
 # VoxVision
 
-A C++ project for voxel-based graphics processing.
+A C++ project for voxel graphics processing.
 
 ## Quick Start
 
@@ -8,7 +8,6 @@ A C++ project for voxel-based graphics processing.
 - C++ compiler (GCC/Clang)
 - GNU Make
 - wget or curl (for dependency installation)
-
 
 ## ⚠️ Cloning the Repository
 
@@ -32,20 +31,20 @@ If you've already cloned without LFS, run:
 git lfs pull
 ```
 
-**Note:** Blender backup files such as `.blend1` and `.blend@` are excluded via `.gitignore`. Only the primary `.blend` files are tracked and required.
+**Note:** Blender backup files such as `.blend1` and `.blend@` are excluded via `.gitignore`. Only the primary `.blend` files are tracked.
 
 
 ### Setup
 
 1. Install Premake5:
 ```bash
-# Run the installation script
+# Install premake into bin/
 ./scripts/install_premake5.sh
 ```
 
 2. Install dependencies:
 ```bash
-# Install JSON library
+# Install JSON library into deps
 ./scripts/install_nlohmann_json.sh
 ```
 
@@ -54,16 +53,17 @@ git lfs pull
 You can use the run script to build and run the project:
 ```bash
 # Build and run Debug version
-./scripts/run.sh Debug
+./scripts/build_and_run.sh Debug
 
 # Build and run Release version
-./scripts/run.sh Release
+./scripts/build_and_run.sh Release
 ```
 
 Alternatively, you can build and run manually:
 
 1. Generate build files:
 ```bash
+# You can replace 'gmake2' with any other Premake action (e.g., vs2022, xcode4)
 ./bin/premake5 gmake2
 ```
 

@@ -39,7 +39,7 @@ public:
      *          - image_file: Path to the corresponding image file
      *          - camera_position: {X, Y, Z} position in world space
      * 
-     * @throws None - Errors are handled internally and reported to stderr
+     * @throws None - Errors are handled internally 
      */
     std::map<int, std::vector<FrameInfo>> loadMetadata(const std::string& metadata_file);
     bool convertPixelToVoxel();

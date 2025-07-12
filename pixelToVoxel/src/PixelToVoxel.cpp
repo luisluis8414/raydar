@@ -18,7 +18,7 @@ std::map<int, std::vector<FrameInfo>> PixelToVoxel::loadMetadata(const std::stri
     std::ifstream ifs(metadata_file);
     if (!ifs.is_open()) {
         std::cerr << "ERROR: Cannot open " << metadata_file << std::endl;
-        return camera_frames;
+        std::exit(EXIT_FAILURE);
     }
 
     try {
@@ -53,14 +53,13 @@ std::map<int, std::vector<FrameInfo>> PixelToVoxel::loadMetadata(const std::stri
         }
     } catch (const nlohmann::json::exception& e) {
         std::cerr << "ERROR: JSON parsing failed: " << e.what() << std::endl;
-        camera_frames.clear();
+        std::exit(EXIT_FAILURE);
     }
 
     return camera_frames;
 }   
 
 bool PixelToVoxel::convertPixelToVoxel() {
-    // Implementation will go here
     return true;
 }
 

@@ -1,48 +1,64 @@
-# Build directories
+# === Build Directories ===
 bin/
 obj/
+build/
+out/
+Debug/
+Release/
 
-# Premake generated files
+# === Premake Generated Files ===
 Makefile
 *.make
+*.workspace
+*.project
+*.sln
+*.vcxproj*
+*.xcodeproj/
+*.cbp
 
-# Prerequisites
-*.d
-
-# Compiled Object files
+# === Compiler Intermediate Files ===
+*.d              
 *.slo
 *.lo
 *.o
 *.obj
-
-# Precompiled Headers
 *.gch
 *.pch
+*.lst
+*.map
+*.mod
+*.dep
+*.idb
+*.pdb
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Compiled Static libraries
-*.lai
-*.la
+# === Compiled Libraries ===
 *.a
 *.lib
+*.la
+*.lai
+*.so
+*.dll
+*.dylib
 
-# Executables
+# === Executables ===
 *.exe
 *.out
 *.app
+*.run
 
-# IDE specific files
+# === Logs and Reports ===
+*.log
+*.trace
+*.stackdump
+
+# === IDE Specific ===
 .vscode/
 .vs/
-*.swp
-*.swo
-*~
+.idea/
+*.sublime*
+*.code-workspace
 
-# OS specific files
+# === OS Specific ===
 .DS_Store
 .DS_Store?
 ._*
@@ -50,12 +66,20 @@ Makefile
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Keep premake5 executable
-!bin/premake5
+# === Editor Swap/Backup Files ===
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
 
-
-data
-
+# === Blender Backups ===
 *.blend1
 *.blend@
+*.blend2
+*.blend3
+
+# === Custom Project Excludes ===
+data/
