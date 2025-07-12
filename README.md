@@ -9,13 +9,36 @@ A C++ project for voxel-based graphics processing.
 - GNU Make
 - wget or curl (for dependency installation)
 
+
+## ⚠️ Cloning the Repository
+
+### Large Files (Blender Scenes)
+
+This project includes large `.blend` files (e.g., 3D scene with 5 cameras and an f-35) which are tracked using [Git LFS (Large File Storage)](https://git-lfs.github.com/).
+
+Before cloning the repository, make sure Git LFS is installed:
+
+```bash
+# One-time setup
+git lfs install
+
+# Clone the repository
+git clone https://github.com/luisluis8414/vox_vision.git
+```
+
+If you've already cloned without LFS, run:
+
+```bash
+git lfs pull
+```
+
+**Note:** Blender backup files such as `.blend1` and `.blend@` are excluded via `.gitignore`. Only the primary `.blend` files are tracked and required.
+
+
 ### Setup
 
 1. Install Premake5:
 ```bash
-# Make the install script executable
-chmod +x scripts/install_premake5.sh
-
 # Run the installation script
 ./scripts/install_premake5.sh
 ```
@@ -23,7 +46,7 @@ chmod +x scripts/install_premake5.sh
 2. Install dependencies:
 ```bash
 # Install JSON library
-./scripts/install_json.sh
+./scripts/install_nlohmann_json.sh
 ```
 
 ### Build and Run
@@ -83,26 +106,3 @@ make config=release
 
 - [Metadata File Format](docs/metadata_format.md) - Specification for camera metadata JSON files
 
-## Large Files (Blender Scenes)
-
-This project includes large `.blend` files (e.g., 3D scene with 5 cameras and an f-35) which are tracked using [Git LFS (Large File Storage)](https://git-lfs.github.com/).
-
-### ⚠️ Cloning the Repository
-
-Before cloning the repository, make sure Git LFS is installed:
-
-```bash
-# One-time setup
-git lfs install
-
-# Clone the repository
-git clone https://github.com/luisluis8414/vox_vision.git
-```
-
-If you've already cloned without LFS, run:
-
-```bash
-git lfs pull
-```
-
-**Note:** Blender backup files such as `.blend1` and `.blend@` are excluded via `.gitignore`. Only the primary `.blend` files are tracked and required.
