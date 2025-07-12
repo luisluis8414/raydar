@@ -11,7 +11,7 @@ cameras.sort(key=lambda o: o.name)
 cam_indices = {cam: idx for idx, cam in enumerate(cameras)}
 
 blend_dir = os.path.dirname(bpy.data.filepath)
-output_dir = os.path.join(blend_dir, "..", "data", "camera_sequence", "frames")
+output_dir = os.path.join(blend_dir, "..", "data", "frames")
 os.makedirs(output_dir, exist_ok=True)
 
 metadata = []
@@ -56,7 +56,7 @@ for frame in range(start_frame, end_frame + 1, step):
                 "Z": math.degrees(rot.z)
             },
             "fov_degrees": fov_deg,
-            "image_file": image_file,
+            "image_file": f"data/frames/{image_file}",
             "camera_position": {
                 "X": float(pos.x),
                 "Y": float(pos.y),
