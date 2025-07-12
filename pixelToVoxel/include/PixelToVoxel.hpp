@@ -5,6 +5,7 @@
 
 namespace ptv {
 
+    
 struct Vec3 {
     float X;
     float Y;
@@ -20,11 +21,24 @@ struct FrameInfo {
     Vec3 camera_position;
 };
 
-class PixelToVoxel {
-public:
-    PixelToVoxel();
-    ~PixelToVoxel();
+struct Image
+{
+    int width;
+    int height;
+    std::vector<float> pixels; 
+};
 
+
+const int VOXEL_GRID_N = 500;          // Number of voxels per dimension (N x N x N)
+const float VOXEL_SIZE = 5.0f;                  // Size of each voxel in meters (total span = RESOLUTION * SIZE)
+const Vec3 GRID_CENTER = {0.f, 0.f, 1250.f};    // Center of the grid in world coordinates (x, y, z in meters)
+
+// Motion Detection and Accumulation Settings
+const float MOTION_THRESHOLD = 2.0f;    // Pixel difference threshold for detecting motion (higher = less sensitive)
+// const float ATTENUATION_ALPHA = 0.1f;   // Distance-based attenuation factor for ray accumulation (higher = more falloff)
+
+class PixelToVoxel {
+private:
     /**
      * @brief Loads camera metadata from a JSON file and groups frames by camera index
      * 
@@ -41,8 +55,15 @@ public:
      * 
      * @throws None - Errors are handled internally 
      */
-    std::map<int, std::vector<FrameInfo>> loadMetadata(const std::string& metadata_file);
-    bool convertPixelToVoxel();
+     std::map<int, std::vector<FrameInfo>> loadMetadata(const std::string& metadata_file);
+
+     void load_image(const std::string path, Image& out);
+public:
+    PixelToVoxel();
+    ~PixelToVoxel();
+
+
+    void generateVoxelGrid(const std::string& metadata_file_path);
 };
 
 } // namespace ptv 

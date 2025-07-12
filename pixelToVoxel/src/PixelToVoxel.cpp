@@ -1,8 +1,12 @@
 #include "PixelToVoxel.hpp"
-#include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+
+#include <nlohmann/json.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
 
 namespace ptv {
 
@@ -59,8 +63,60 @@ std::map<int, std::vector<FrameInfo>> PixelToVoxel::loadMetadata(const std::stri
     return camera_frames;
 }   
 
-bool PixelToVoxel::convertPixelToVoxel() {
-    return true;
+void PixelToVoxel::load_image(const std::string path, Image& out) {
+    int width, height, channels;
+    unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+
+    if(!data) {
+        std::cerr << "ERROR: Failed to load image " << path << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    out.width = width;
+    out.height = height;
+    out.pixels.resize(width * height);
+
+    for(size_t i = 0; i < width * height; i++) {
+        out.pixels[i] = data[i] / 255.0f;
+    }
+
+    stbi_image_free(data);
+}
+
+void PixelToVoxel::generateVoxelGrid(const std::string& metadata_file_path) {
+    std::map<int, std::vector<FrameInfo>> camera_frames = loadMetadata(metadata_file_path);
+
+    std::vector<float> voxel_grid(VOXEL_GRID_N * VOXEL_GRID_N * VOXEL_GRID_N, 0.f);
+
+    for (const auto& [camera_id, frames] : camera_frames) {
+        if(frames.size() < 2) {
+            std::cerr << "WARNING: Camera " << camera_id << " has less than 2 frames, skipping" << std::endl;
+            continue;
+        }
+
+        std::optional<Image> prev_img;
+        FrameInfo prev_info;
+
+        for(size_t i = 0; i < frames.size(); i++) {
+            FrameInfo curr_info = frames[i];
+            Image curr_img;
+
+            load_image(curr_info.image_file, curr_img);
+
+            if (!prev_img.has_value()) {
+                prev_img = curr_img; 
+                prev_info = curr_info;
+                continue;
+            }
+
+            for(size_t y = 0; y < curr_img.height; y++) {
+                for(size_t x = 0; x < curr_img.width; x++) {
+                    // TODO: Implement voxel grid processing
+                }
+            }
+        }
+        prev_img.reset();
+    }
 }
 
 } // namespace ptv 
