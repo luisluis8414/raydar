@@ -83,3 +83,6 @@ desktop.ini
 
 # === Custom Project Excludes ===
 data/
+
+# === Dependencies ===
+deps/
