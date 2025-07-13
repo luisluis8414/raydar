@@ -72,10 +72,33 @@ void load_image(const std::string& path, Image& out) {
     out.pixels.resize(width * height);
 
     for(size_t i = 0; i < width * height; i++) {
-        out.pixels[i] = data[i] / 255.0f;
+        out.pixels[i] = data[i];
     }
 
     stbi_image_free(data);
+}
+
+DetectionArray detectMotion(const Image& prev_img, const Image& curr_img, float motion_threshold){
+    DetectionArray detection_array;
+    detection_array.width = curr_img.width;
+    detection_array.height = curr_img.height;
+
+    std::vector<PixelChange> pixels_with_motion;
+
+    for(int y = 0; y < curr_img.height; y++) {
+        for(int x = 0; x < curr_img.width; x++) {
+            float prev_pixel = prev_img.pixels[y * prev_img.width + x];
+            float curr_pixel = curr_img.pixels[y * curr_img.width + x];
+
+            float change = curr_pixel - prev_pixel;
+            if(abs(change) > motion_threshold) {
+                pixels_with_motion.push_back({x, y, change});
+            }
+        }
+    }
+
+    detection_array.pixels_with_motion = pixels_with_motion;
+    return detection_array;
 }
 
 void generateVoxelGrid(const std::string& metadata_file_path) {
@@ -94,7 +117,7 @@ void generateVoxelGrid(const std::string& metadata_file_path) {
 
         for(size_t i = 0; i < frames.size(); i++) {
             FrameInfo curr_info = frames[i];
-            Image curr_img;
+            Image curr_img; 
 
             load_image(curr_info.image_file, curr_img);
 
@@ -104,13 +127,15 @@ void generateVoxelGrid(const std::string& metadata_file_path) {
                 continue;
             }
 
-            for(size_t y = 0; y < curr_img.height; y++) {
-                for(size_t x = 0; x < curr_img.width; x++) {
-                    // TODO: Implement voxel grid processing
-                }
-            }
+            DetectionArray detection_array = detectMotion(*prev_img, curr_img, MOTION_THRESHOLD);   
+            
+            Vec3 camera_position = curr_info.camera_position;
+            Vec3 camera_rotation = curr_info.camera_rotation;
+            float fov_degrees = curr_info.fov_degrees;
+
+            
         }
-        prev_img.reset();
+        prev_img.reset();   
     }
 }
 

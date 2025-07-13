@@ -19,15 +19,25 @@ struct FrameInfo {
     std::string image_file;
     Vec3 camera_position;
 };
-
 struct Image {
     int width;
     int height;
     std::vector<float> pixels; 
 };
+struct PixelChange {
+    int x;
+    int y;
+    float change;
+};
 
-const int VOXEL_GRID_N = 500;          // Number of voxels per dimension (N x N x N)
-const float VOXEL_SIZE = 5.0f;                  // Size of each voxel in meters (total span = RESOLUTION * SIZE)
+struct DetectionArray {
+    int width;
+    int height;
+    std::vector<PixelChange> pixels_with_motion;
+};
+
+const int VOXEL_GRID_N = 500;                            // Number of voxels per dimension (N x N x N)
+const float VOXEL_SIZE = 5.0f;                           // Size of each voxel in meters (total span = RESOLUTION * SIZE)
 const Vec3 GRID_CENTER = {0.f, 0.f, 1250.f};    // Center of the grid in world coordinates (x, y, z in meters)
 
 // Motion Detection and Accumulation Settings
@@ -58,6 +68,8 @@ std::map<int, std::vector<FrameInfo>> loadMetadata(const std::string& metadata_f
  * @param out Output Image structure to fill with loaded data
  */
 void load_image(const std::string& path, Image& out);
+
+DetectionArray detectMotion(const Image& prev_img, const Image& curr_img);
 
 /**
  * @brief Generates a voxel grid from camera metadata and image data
