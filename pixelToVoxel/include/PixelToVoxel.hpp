@@ -69,7 +69,7 @@ std::map<int, std::vector<FrameInfo>> loadMetadata(const std::string& metadata_f
  */
 void load_image(const std::string& path, Image& out);
 
-DetectionArray detectMotion(const Image& prev_img, const Image& curr_img);
+DetectionArray detectMotion(const Image& prev_img, const Image& curr_img, float motion_threshold);
 
 /**
  * @brief Generates a voxel grid from camera metadata and image data

@@ -1,4 +1,6 @@
 #include "PixelToVoxel.hpp"
+#include "helpers.hpp"
+
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -129,13 +131,34 @@ void generateVoxelGrid(const std::string& metadata_file_path) {
 
             DetectionArray detection_array = detectMotion(*prev_img, curr_img, MOTION_THRESHOLD);   
             
-            Vec3 camera_position = curr_info.camera_position;
-            Vec3 camera_rotation = curr_info.camera_rotation;
-            float fov_degrees = curr_info.fov_degrees;
+            for (const ptv::PixelChange& pixel : detection_array.pixels_with_motion) {
+                Vec3 dir = getRayDirection(curr_info, pixel.x, pixel.y, curr_img.width, curr_img.height);
+                float increment = std::abs(pixel.change);
+                traceRayThroughVoxels(voxel_grid, curr_info.camera_position, dir, increment);
+            }
 
-            
+            prev_img = curr_img;
+            prev_info = curr_info;
         }
         prev_img.reset();   
+    }
+
+    {
+        // Save voxel grid with metadata
+    std::string output_bin = "voxel_grid.bin";  // Hardcoded; can be a function param or configurable
+    std::ofstream ofs(output_bin, std::ios::binary);
+    if (!ofs) {
+        std::cerr << "Cannot open output file: " << output_bin << "\n";
+        std::exit(EXIT_FAILURE); 
+    } else {
+        // Write metadata (N, voxel_size)
+        ofs.write(reinterpret_cast<const char*>(&VOXEL_GRID_N), sizeof(int));
+        ofs.write(reinterpret_cast<const char*>(&VOXEL_SIZE), sizeof(float));
+        // Write the data
+        ofs.write(reinterpret_cast<const char*>(voxel_grid.data()), voxel_grid.size() * sizeof(float));
+        ofs.close();
+        std::cout << "Saved voxel grid to " << output_bin << "\n";
+    }
     }
 }
 
