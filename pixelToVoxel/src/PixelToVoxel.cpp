@@ -109,29 +109,32 @@ DetectionArray detect_motion(const Image& prev_img, const Image& curr_img, float
     return detection_array;
 }
 
+// use a flood fill method to group connected pixels into objects and calculate their centers 
+// this reduces the total number of rays by focusing on object centers instead of every individual pixel
 std::vector<std::pair<int, int>> find_object_centers(const DetectionArray& da) {
 
-    std::set<std::pair<int, int>> positions;
+    // store all detected pixel movement in a set for efficiency
+    std::set<std::pair<int, int>> unprocessed_pixels;
     for (const auto& p : da.pixels_with_motion) {
-        positions.insert({p.x, p.y});
+        unprocessed_pixels.insert({p.x, p.y});
     }
 
-    std::set<std::pair<int, int>> visited;
     std::vector<std::pair<int, int>> centers;
 
-
-    for (const auto& start : positions) {
-        if (visited.count(start)) continue;
-
-
+    // process each object using flood fill
+    while (!unprocessed_pixels.empty()) {
+        // start the flood fill with any pixel from the set
+        auto start = *unprocessed_pixels.begin();
         std::queue<std::pair<int, int>> q;
         q.push(start);
-        visited.insert(start);
+        unprocessed_pixels.erase(start);
 
+        // track the sum of coordinates and the number of pixels in the current object
         double sum_x = 0.0;
         double sum_y = 0.0;
         int count = 0;
 
+        // flood fill to find all connected pixels
         while (!q.empty()) {
             auto [x, y] = q.front();
             q.pop();
@@ -140,22 +143,23 @@ std::vector<std::pair<int, int>> find_object_centers(const DetectionArray& da) {
             sum_y += y;
             ++count;
 
-
+            // check all neighbours of the current pixel (3x3) 
             for (int dx = -1; dx <= 1; ++dx) {
                 for (int dy = -1; dy <= 1; ++dy) {
                     if (dx == 0 && dy == 0) continue;
                     std::pair<int, int> neigh = {x + dx, y + dy};
-                    // Ensure neighbor is within image bounds (optional, but good practice)
-                    if (neigh.first >= 0 && neigh.first < da.width &&
-                        neigh.second >= 0 && neigh.second < da.height &&
-                        positions.count(neigh) && !visited.count(neigh)) {
-                        visited.insert(neigh);
+                    
+                    // if this neighbour is in the set of unprocessed pixels, add it to the object
+                    if (unprocessed_pixels.count(neigh)) { // no bound checks needed, all pixels in unprocessed_pixels are valid
+                        unprocessed_pixels.erase(neigh);
+                        // check its neighbours to map out the entire object
                         q.push(neigh);
-                    }
+                    } 
                 }
             }
         }
 
+        // calc the center of the found object
         int center_x = static_cast<int>(std::round(sum_x / count));
         int center_y = static_cast<int>(std::round(sum_y / count));
         centers.push_back({center_x, center_y});
