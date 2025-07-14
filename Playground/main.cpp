@@ -3,7 +3,7 @@
 
 int main() {
     
-    ptv::generateVoxelGrid("data/metadata.json");
+    ptv::generate_voxel_grid("data/metadata.json");
     
     return 0;
 }

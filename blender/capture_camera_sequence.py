@@ -7,7 +7,8 @@ scene = bpy.context.scene
 
 cameras = [obj for obj in bpy.data.objects if obj.type == 'CAMERA']
 cameras.sort(key=lambda o: o.name)
-
+cameras = cameras[:3] 
+f35_obj = bpy.data.objects["f-35"]
 cam_indices = {cam: idx for idx, cam in enumerate(cameras)}
 
 blend_dir = os.path.dirname(bpy.data.filepath)
@@ -27,6 +28,8 @@ original_filepath = scene.render.filepath
 original_frame = scene.frame_current
 
 for frame in range(start_frame, end_frame + 1, step):
+    if current_step >= 3:
+        break
     scene.frame_set(frame)
     
     for cam_obj in cameras:
@@ -61,6 +64,11 @@ for frame in range(start_frame, end_frame + 1, step):
                 "X": float(pos.x),
                 "Y": float(pos.y),
                 "Z": float(pos.z)
+            },
+            "f35_position": {
+                "X": float(f35_obj.location.x),
+                "Y": float(f35_obj.location.y),
+                "Z": float(f35_obj.location.z)
             }
         }
         metadata.append(meta)

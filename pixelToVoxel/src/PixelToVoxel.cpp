@@ -5,6 +5,12 @@
 #include <iostream>
 #include <algorithm>
 #include <optional>
+#include <set>
+#include <filesystem>
+#include <vector>
+#include <queue>
+#include <cmath>
+#include <utility> 
 
 #include <nlohmann/json.hpp>
 
@@ -13,7 +19,7 @@
 
 namespace ptv {
 
-std::map<int, std::vector<FrameInfo>> loadMetadata(const std::string& metadata_file) {
+std::map<int, std::vector<FrameInfo>> load_metadata(const std::string& metadata_file) {
     std::map<int, std::vector<FrameInfo>> camera_frames;
 
     std::ifstream ifs(metadata_file);
@@ -80,7 +86,7 @@ void load_image(const std::string& path, Image& out) {
     stbi_image_free(data);
 }
 
-DetectionArray detectMotion(const Image& prev_img, const Image& curr_img, float motion_threshold){
+DetectionArray detect_motion(const Image& prev_img, const Image& curr_img, float motion_threshold){
     DetectionArray detection_array;
     detection_array.width = curr_img.width;
     detection_array.height = curr_img.height;
@@ -103,10 +109,67 @@ DetectionArray detectMotion(const Image& prev_img, const Image& curr_img, float 
     return detection_array;
 }
 
-void generateVoxelGrid(const std::string& metadata_file_path) {
-    std::map<int, std::vector<FrameInfo>> camera_frames = loadMetadata(metadata_file_path);
+std::vector<std::pair<int, int>> find_object_centers(const DetectionArray& da) {
 
-    std::vector<float> voxel_grid(VOXEL_GRID_N * VOXEL_GRID_N * VOXEL_GRID_N, 0.f);
+    std::set<std::pair<int, int>> positions;
+    for (const auto& p : da.pixels_with_motion) {
+        positions.insert({p.x, p.y});
+    }
+
+    std::set<std::pair<int, int>> visited;
+    std::vector<std::pair<int, int>> centers;
+
+
+    for (const auto& start : positions) {
+        if (visited.count(start)) continue;
+
+
+        std::queue<std::pair<int, int>> q;
+        q.push(start);
+        visited.insert(start);
+
+        double sum_x = 0.0;
+        double sum_y = 0.0;
+        int count = 0;
+
+        while (!q.empty()) {
+            auto [x, y] = q.front();
+            q.pop();
+
+            sum_x += x;
+            sum_y += y;
+            ++count;
+
+
+            for (int dx = -1; dx <= 1; ++dx) {
+                for (int dy = -1; dy <= 1; ++dy) {
+                    if (dx == 0 && dy == 0) continue;
+                    std::pair<int, int> neigh = {x + dx, y + dy};
+                    // Ensure neighbor is within image bounds (optional, but good practice)
+                    if (neigh.first >= 0 && neigh.first < da.width &&
+                        neigh.second >= 0 && neigh.second < da.height &&
+                        positions.count(neigh) && !visited.count(neigh)) {
+                        visited.insert(neigh);
+                        q.push(neigh);
+                    }
+                }
+            }
+        }
+
+        int center_x = static_cast<int>(std::round(sum_x / count));
+        int center_y = static_cast<int>(std::round(sum_y / count));
+        centers.push_back({center_x, center_y});
+    }
+
+    return centers;
+}
+
+void generate_voxel_grid(const std::string& metadata_file_path) {
+    std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
+
+    std::map<int, std::map<int, std::vector<Vec3>>> rays;   
+
+    std::map<int, std::map<int, Vec3>> camera_positions;
 
     for (const auto& [camera_id, frames] : camera_frames) {
         if(frames.size() < 2) {
@@ -129,12 +192,26 @@ void generateVoxelGrid(const std::string& metadata_file_path) {
                 continue;
             }
 
-            DetectionArray detection_array = detectMotion(*prev_img, curr_img, MOTION_THRESHOLD);   
+            DetectionArray detection_array = detect_motion(*prev_img, curr_img, MOTION_THRESHOLD);   
             
-            for (const ptv::PixelChange& pixel : detection_array.pixels_with_motion) {
-                Vec3 dir = getRayDirection(curr_info, pixel.x, pixel.y, curr_img.width, curr_img.height);
-                float increment = std::abs(pixel.change);
-                traceRayThroughVoxels(voxel_grid, curr_info.camera_position, dir, increment);
+            std::vector<std::pair<int, int>> object_centers = find_object_centers(detection_array);
+            
+
+            {
+                std::string output_dir = "motion_output";
+                std::string output_name = "motion_camera" + std::to_string(curr_info.camera_index) + "_frame" + std::to_string(curr_info.frame_index) + ".png";
+                std::string output_path = output_dir + "/" + output_name;
+
+                std::filesystem::create_directories(output_dir);
+                visualize_motion(curr_img, detection_array, output_path, object_centers);
+            }
+            
+            for (const std::pair<int, int>& center : object_centers) {
+                int x = center.first;
+                int y = center.second;
+                Vec3 dir = get_ray_direction(curr_info, x, y, curr_img.width, curr_img.height);
+                rays[camera_id][curr_info.frame_index].push_back(dir);
+                camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position;
             }
 
             prev_img = curr_img;
@@ -142,24 +219,5 @@ void generateVoxelGrid(const std::string& metadata_file_path) {
         }
         prev_img.reset();   
     }
-
-    {
-        // Save voxel grid with metadata
-    std::string output_bin = "voxel_grid.bin";  // Hardcoded; can be a function param or configurable
-    std::ofstream ofs(output_bin, std::ios::binary);
-    if (!ofs) {
-        std::cerr << "Cannot open output file: " << output_bin << "\n";
-        std::exit(EXIT_FAILURE); 
-    } else {
-        // Write metadata (N, voxel_size)
-        ofs.write(reinterpret_cast<const char*>(&VOXEL_GRID_N), sizeof(int));
-        ofs.write(reinterpret_cast<const char*>(&VOXEL_SIZE), sizeof(float));
-        // Write the data
-        ofs.write(reinterpret_cast<const char*>(voxel_grid.data()), voxel_grid.size() * sizeof(float));
-        ofs.close();
-        std::cout << "Saved voxel grid to " << output_bin << "\n";
-    }
-    }
 }
-
 } // namespace ptv 
