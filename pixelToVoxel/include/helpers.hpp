@@ -27,4 +27,6 @@ Vec3 apply_rotation(const Vec3& v, const Vec3& euler_deg);
 Vec3 get_ray_direction(const FrameInfo& info, int pixel_x, int pixel_y, int img_width, int img_height);
 std::vector<Vec3> find_voxel_cluster_centroids(const std::vector<int>& camera_count, int min_count, const Vec3& grid_min, float voxel_size, int N);
 
+// puts all past positions in the last picture of a camera series (flightpath)
+void visualize_flight_path(const Image& base_img, const std::vector<std::pair<int, int>>& all_centers, const std::string& output_path);
 } // namespace ptv 
