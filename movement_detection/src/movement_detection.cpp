@@ -257,5 +257,6 @@ namespace ptv {
             }
             prev_img.reset();
         }
+        generate_flight_path_images(camera_frames, all_object_centers);
     }
 } // namespace ptv 
