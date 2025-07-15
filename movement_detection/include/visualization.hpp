@@ -18,4 +18,5 @@ namespace ptv {
      */
     void visualize_motion(const Image& curr_img, const DetectionArray& detection, const std::string& output_path, const std::vector<std::pair<int, int>>& centers);
 
+    void visualize_flight_path(const Image& base_img, const std::vector<std::pair<int, int>>& all_centers, const std::string& output_path);
 } // namespace ptv 

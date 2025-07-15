@@ -148,8 +148,8 @@ namespace ptv {
                 ++count;
 
                 // check all neighbours of the current pixel (3x3) 
-                for (int dx = -1; dx <= 1; ++dx) {
-                    for (int dy = -1; dy <= 1; ++dy) {
+                for (int dx = -2; dx <= 2; ++dx) {
+                    for (int dy = -2; dy <= 2; ++dy) {
                         if (dx == 0 && dy == 0) continue;
                         std::pair<int, int> neigh = { x + dx, y + dy };
 
@@ -172,12 +172,34 @@ namespace ptv {
         return centers;
     }
 
+    void generate_flight_path_images(const std::map<int, std::vector<FrameInfo>>& camera_frames,const std::map<int, std::vector<std::pair<int, int>>>& all_object_centers) {
+        for (const auto& [camera_id, frames] : camera_frames) {
+            if (frames.empty()) continue;
+
+            // use the last frame as the base image
+            Image base_img;
+            load_image(frames.back().image_file, base_img); 
+
+            const auto& all_centers = all_object_centers.at(camera_id);
+
+            std::string flight_path_dir = "motion_output/flight_paths";
+            std::filesystem::create_directories(flight_path_dir);
+
+            std::string output_name = "motion_camera" + std::to_string(camera_id) + "_flight_path.png";
+            std::string output_path = flight_path_dir + "/" + output_name;
+
+            visualize_flight_path(base_img, all_centers, output_path);
+        }
+    }
+
     void generate_voxel_grid(const std::string& metadata_file_path, const float detect_motion_threshold) {
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
 
         std::map<int, std::map<int, std::vector<Vec3>>> rays;
 
         std::map<int, std::map<int, Vec3>> camera_positions;
+
+        std::map<int, std::vector<std::pair<int, int>>> all_object_centers; // for flight path
 
         for (const std::pair<int, std::vector<ptv::FrameInfo>>& camera_frames_pair : camera_frames) {
             int camera_id = camera_frames_pair.first;
@@ -207,6 +229,11 @@ namespace ptv {
 
                 std::vector<std::pair<int, int>> object_centers = find_object_centers(detection_array);
 
+                all_object_centers[camera_id].insert(
+                    all_object_centers[camera_id].end(),
+                    object_centers.begin(),
+                    object_centers.end()
+                );
 
                 {
                     std::string output_dir = "motion_output";
@@ -230,5 +257,6 @@ namespace ptv {
             }
             prev_img.reset();
         }
+        generate_flight_path_images(camera_frames, all_object_centers);
     }
 } // namespace ptv 
