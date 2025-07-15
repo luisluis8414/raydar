@@ -1,5 +1,6 @@
 #include "PixelToVoxel.hpp"
-#include "helpers.hpp"
+#include "vector_ops.hpp"
+#include "visualization.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -51,8 +52,8 @@ namespace ptv {
                 info.camera_position.Z = frame["camera_position"]["Z"];
 
                 // Find the insertion point to maintain sorted order
-                auto& frames = camera_frames[info.camera_index];
-                auto insert_pos = std::lower_bound(frames.begin(), frames.end(), info,
+                std::vector<ptv::FrameInfo>& frames = camera_frames[info.camera_index];
+                std::vector<ptv::FrameInfo>::iterator insert_pos = std::lower_bound(frames.begin(), frames.end(), info,
                     [](const FrameInfo& a, const FrameInfo& b) {
                         return a.frame_index < b.frame_index;
                     });
@@ -190,7 +191,7 @@ namespace ptv {
     }
 }
 
-    void generate_voxel_grid(const std::string& metadata_file_path) {
+    void generate_voxel_grid(const std::string& metadata_file_path, const float detect_motion_threshold) {
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
 
         std::map<int, std::map<int, std::vector<Vec3>>> rays;
@@ -220,7 +221,7 @@ namespace ptv {
                     continue;
                 }
 
-                DetectionArray detection_array = detect_motion(*prev_img, curr_img, MOTION_THRESHOLD);
+                DetectionArray detection_array = detect_motion(*prev_img, curr_img, detect_motion_threshold);
 
                 std::vector<std::pair<int, int>> object_centers = find_object_centers(detection_array);
 
@@ -252,6 +253,6 @@ namespace ptv {
             }
             prev_img.reset();
         }
-        // generate_flight_path_images(camera_frames, all_object_centers);
+        generate_flight_path_images(camera_frames, all_object_centers);
     }
 } // namespace ptv 

@@ -5,6 +5,7 @@ A C++ project for voxel graphics processing.
 ## Quick Start
 
 ### Prerequisites
+
 - C++ compiler (GCC/Clang)
 - GNU Make
 - wget or curl (for dependency installation)
@@ -33,24 +34,26 @@ git lfs pull
 
 **Note:** Blender backup files such as `.blend1` and `.blend@` are excluded via `.gitignore`. Only the primary `.blend` files are tracked.
 
-
 ### Setup
 
 1. Install Premake5:
+
 ```bash
 # Install premake into bin/
 ./scripts/install_premake5.sh
 ```
 
 2. Install dependencies:
+
 ```bash
-# Install JSON library into deps
-./scripts/install_nlohmann_json.sh
+# Install dependencies into deps
+scripts/dependencies/install_all.sh
 ```
 
 ### Build and Run
 
 You can use the run script to build and run the project:
+
 ```bash
 # Build and run Debug version
 ./scripts/build_and_run.sh Debug
@@ -62,12 +65,14 @@ You can use the run script to build and run the project:
 Alternatively, you can build and run manually:
 
 1. Generate build files:
+
 ```bash
 # You can replace 'gmake2' with any other Premake action (e.g., vs2022, xcode4)
 ./bin/premake5 gmake2
 ```
 
 2. Compile:
+
 ```bash
 # Debug build
 make config=debug
@@ -77,6 +82,7 @@ make config=release
 ```
 
 3. Run:
+
 ```bash
 # Debug version
 ./bin/Debug/Playground
@@ -86,6 +92,7 @@ make config=release
 ```
 
 ## Project Structure
+
 ```
 .
 ├── pixelToVoxel/    # Core library
@@ -100,9 +107,16 @@ make config=release
 ```
 
 ## Dependencies
+
 - [nlohmann/json](https://github.com/nlohmann/json) - JSON for Modern C++
+- [stb_image](https://github.com/nothings/stb) - Image loading (header-only, used for reading images)
+- [stb_image_write](https://github.com/nothings/stb) - Image writing (header-only, used for saving visualizations)
 
 ## Documentation
 
 - [Metadata File Format](docs/metadata_format.md) - Specification for camera metadata JSON files
 
+## Code Structure
+
+- `vector_ops.hpp/cpp`: Vector math and ray calculation helpers
+- `visualization.hpp/cpp`: Visualization tools for motion detection output
