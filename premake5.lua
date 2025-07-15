@@ -21,7 +21,7 @@ workspace "VoxVision"
         }
         includedirs { 
             ".",
-            "pixelToVoxel/include",
+            "movement_detection/include",
             "deps",
             "/usr/include",
             "/usr/local/include"
@@ -38,23 +38,23 @@ workspace "VoxVision"
         optimize "On"
         runtime "Release"
 
-project "PixelToVoxel"
+project "movement_detection"
     kind "StaticLib"
-    location "pixelToVoxel"
+    location "movement_detection"
     
     files {
-        "pixelToVoxel/src/**.cpp",
-        "pixelToVoxel/include/**.hpp",
-        "pixelToVoxel/include/**.h"
+        "movement_detection/src/**.cpp",
+        "movement_detection/include/**.hpp",
+        "movement_detection/include/**.h"
     }
     
     includedirs {
-        "%{wks.location}/pixelToVoxel/include",
+        "%{wks.location}/movement_detection/include",
         "%{wks.location}/deps"
     }
 
     filter { "toolset:clang" }
-        buildoptions { "-I%{wks.location}/pixelToVoxel/include" }
+        buildoptions { "-I%{wks.location}/movement_detection/include" }
 
 project "Playground"
     kind "ConsoleApp"
@@ -62,9 +62,9 @@ project "Playground"
     
     files { "%{prj.location}/**.cpp" }
     
-    -- Link against PixelToVoxel library
-    links { "PixelToVoxel" }
+    -- Link against movement_detection library
+    links { "movement_detection" }
     includedirs { 
-        "pixelToVoxel/include",
+        "movement_detection/include",
         "deps"
     }

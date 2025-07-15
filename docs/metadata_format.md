@@ -1,7 +1,8 @@
 # Metadata File Format
 
 ## Overview
-The metadata file contains camera and frame information used by the PixelToVoxel library. It should be provided as a JSON file containing an array of frame metadata objects.
+
+The metadata file contains camera and frame information used by the movement_detection library. It should be provided as a JSON file containing an array of frame metadata objects.
 
 ## Format Specification
 
@@ -31,22 +32,22 @@ The metadata file contains camera and frame information used by the PixelToVoxel
 
 ```json
 [
-    {
-        "camera_index": 0,
-        "frame_index": 1,
-        "camera_rotation": {
-            "X": 89.999995674289,
-            "Y": 149.99999734394112,
-            "Z": 1.3184902819141923e-05
-        },
-        "fov_degrees": 112.61986782788955,
-        "image_file": "camera0_frame0001.png",
-        "camera_position": {
-            "X": 75.0,
-            "Y": 0.0,
-            "Z": 2.0
-        }
+  {
+    "camera_index": 0,
+    "frame_index": 1,
+    "camera_rotation": {
+      "X": 89.999995674289,
+      "Y": 149.99999734394112,
+      "Z": 1.3184902819141923e-5
+    },
+    "fov_degrees": 112.61986782788955,
+    "image_file": "camera0_frame0001.png",
+    "camera_position": {
+      "X": 75.0,
+      "Y": 0.0,
+      "Z": 2.0
     }
+  }
 ]
 ```
 
@@ -79,13 +80,14 @@ The metadata file contains camera and frame information used by the PixelToVoxel
 Place your metadata file in the `data` directory. The file can then be loaded using:
 
 ```cpp
-ptv::PixelToVoxel converter;
+ptv::movement_detection converter;
 std::vector<ptv::FrameInfo> frames = converter.loadMetadata("data/metadata.json");
 ```
 
 ## Validation
 
 The library will validate the JSON structure when loading. Any errors in the format will result in:
+
 1. Error messages printed to stderr
 2. An empty vector returned from the loadMetadata function
 
@@ -98,4 +100,4 @@ The library will validate the JSON structure when loading. Any errors in the for
 - All rotations are in degrees (not radians)
 - All positions are in meters
 - Coordinate system is right-handed
-- File paths in `image_file` can be relative to the working directory or absolute paths 
+- File paths in `image_file` can be relative to the working directory or absolute paths

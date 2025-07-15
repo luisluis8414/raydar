@@ -1,4 +1,4 @@
-#include "PixelToVoxel.hpp"
+#include "movement_detection.hpp"
 #include "vector_ops.hpp"
 #include "visualization.hpp"
 
@@ -33,7 +33,7 @@ namespace ptv {
             nlohmann::json json_data;
             ifs >> json_data;
 
-            for (const auto& frame : json_data) {
+            for (const nlohmann::json& frame : json_data) {
                 FrameInfo info;
                 info.camera_index = frame["camera_index"];
                 info.frame_index = frame["frame_index"];
@@ -54,7 +54,7 @@ namespace ptv {
                 // Find the insertion point to maintain sorted order
                 std::vector<ptv::FrameInfo>& frames = camera_frames[info.camera_index];
                 std::vector<ptv::FrameInfo>::iterator insert_pos = std::lower_bound(frames.begin(), frames.end(), info,
-                    [](const FrameInfo& a, const FrameInfo& b) {
+                    [](const ptv::FrameInfo& a, const ptv::FrameInfo& b) {
                         return a.frame_index < b.frame_index;
                     });
                 frames.insert(insert_pos, info);
@@ -117,7 +117,7 @@ namespace ptv {
 
         // store all detected pixel movement in a set for efficiency
         std::set<std::pair<int, int>> unprocessed_pixels;
-        for (const auto& p : da.pixels_with_motion) {
+        for (const ptv::PixelChange& p : da.pixels_with_motion) {
             unprocessed_pixels.insert({ p.x, p.y });
         }
 
@@ -126,7 +126,7 @@ namespace ptv {
         // process each object using flood fill
         while (!unprocessed_pixels.empty()) {
             // start the flood fill with any pixel from the set
-            auto start = *unprocessed_pixels.begin();
+            std::pair<int, int> start = *unprocessed_pixels.begin();
             std::queue<std::pair<int, int>> q;
             q.push(start);
             unprocessed_pixels.erase(start);
@@ -138,7 +138,9 @@ namespace ptv {
 
             // flood fill to find all connected pixels
             while (!q.empty()) {
-                auto [x, y] = q.front();
+                std::pair<int, int> xy = q.front();
+                int x = xy.first;
+                int y = xy.second;
                 q.pop();
 
                 sum_x += x;
@@ -177,7 +179,10 @@ namespace ptv {
 
         std::map<int, std::map<int, Vec3>> camera_positions;
 
-        for (const auto& [camera_id, frames] : camera_frames) {
+        for (const std::pair<int, std::vector<ptv::FrameInfo>>& camera_frames_pair : camera_frames) {
+            int camera_id = camera_frames_pair.first;
+            const std::vector<ptv::FrameInfo>& frames = camera_frames_pair.second;
+
             if (frames.size() < 2) {
                 std::cerr << "WARNING: Camera " << camera_id << " has less than 2 frames, skipping" << std::endl;
                 continue;

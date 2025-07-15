@@ -23,7 +23,7 @@ namespace ptv {
         }
 
         // Overlay red for motion pixels
-        for (const auto& p : detection.pixels_with_motion) {
+        for (const ptv::PixelChange& p : detection.pixels_with_motion) {
             float abs_change = std::abs(p.change);
             float alpha = abs_change / 255.0f;
             unsigned char original = static_cast<unsigned char>(curr_img.pixels[p.y * curr_img.width + p.x]);
@@ -34,7 +34,7 @@ namespace ptv {
         }
 
         // Overlay green for center pixels
-        for (const auto& center : centers) {
+        for (const std::pair<int, int>& center : centers) {
             int x = center.first;
             int y = center.second;
             if (x >= 0 && x < curr_img.width && y >= 0 && y < curr_img.height) {

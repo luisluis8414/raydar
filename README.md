@@ -95,7 +95,7 @@ make config=release
 
 ```
 .
-├── pixelToVoxel/    # Core library
+├── movement_detection/    # Core library
 │   ├── include/     # Public headers
 │   ├── src/         # Implementation
 │   └── tests/       # Test files
