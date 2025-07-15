@@ -1,4 +1,4 @@
-#include "PixelToVoxel.hpp"
+#include "movement_detection.hpp"
 #include "vector_ops.hpp"
 #include "visualization.hpp"
 
@@ -33,7 +33,7 @@ namespace ptv {
             nlohmann::json json_data;
             ifs >> json_data;
 
-            for (const auto& frame : json_data) {
+            for (const nlohmann::json& frame : json_data) {
                 FrameInfo info;
                 info.camera_index = frame["camera_index"];
                 info.frame_index = frame["frame_index"];
@@ -54,12 +54,13 @@ namespace ptv {
                 // Find the insertion point to maintain sorted order
                 std::vector<ptv::FrameInfo>& frames = camera_frames[info.camera_index];
                 std::vector<ptv::FrameInfo>::iterator insert_pos = std::lower_bound(frames.begin(), frames.end(), info,
-                    [](const FrameInfo& a, const FrameInfo& b) {
+                    [](const ptv::FrameInfo& a, const ptv::FrameInfo& b) {
                         return a.frame_index < b.frame_index;
                     });
                 frames.insert(insert_pos, info);
             }
-        }catch (const nlohmann::json::exception& e) {
+        }
+        catch (const nlohmann::json::exception& e) {
             std::cerr << "ERROR: JSON parsing failed: " << e.what() << std::endl;
             std::exit(EXIT_FAILURE);
         }
@@ -110,15 +111,13 @@ namespace ptv {
         return detection_array;
     }
 
-    /*
-    use a flood fill method to group connected pixels into objects and calculate their centers
-    this reduces the total number of rays by focusing on object centers instead of every individual pixel
-    */
+    // use a flood fill method to group connected pixels into objects and calculate their centers 
+    // this reduces the total number of rays by focusing on object centers instead of every individual pixel
     std::vector<std::pair<int, int>> find_object_centers(const DetectionArray& da) {
 
         // store all detected pixel movement in a set for efficiency
         std::set<std::pair<int, int>> unprocessed_pixels;
-        for (const auto& p : da.pixels_with_motion) {
+        for (const ptv::PixelChange& p : da.pixels_with_motion) {
             unprocessed_pixels.insert({ p.x, p.y });
         }
 
@@ -127,7 +126,7 @@ namespace ptv {
         // process each object using flood fill
         while (!unprocessed_pixels.empty()) {
             // start the flood fill with any pixel from the set
-            auto start = *unprocessed_pixels.begin();
+            std::pair<int, int> start = *unprocessed_pixels.begin();
             std::queue<std::pair<int, int>> q;
             q.push(start);
             unprocessed_pixels.erase(start);
@@ -139,7 +138,9 @@ namespace ptv {
 
             // flood fill to find all connected pixels
             while (!q.empty()) {
-                auto [x, y] = q.front();
+                std::pair<int, int> xy = q.front();
+                int x = xy.first;
+                int y = xy.second;
                 q.pop();
 
                 sum_x += x;
@@ -147,8 +148,8 @@ namespace ptv {
                 ++count;
 
                 // check all neighbours of the current pixel (3x3) 
-                for (int dx = -1; dx <= 1; ++dx) {
-                    for (int dy = -1; dy <= 1; ++dy) {
+                for (int dx = -2; dx <= 2; ++dx) {
+                    for (int dy = -2; dy <= 2; ++dy) {
                         if (dx == 0 && dy == 0) continue;
                         std::pair<int, int> neigh = { x + dx, y + dy };
 
@@ -172,24 +173,24 @@ namespace ptv {
     }
 
     void generate_flight_path_images(const std::map<int, std::vector<FrameInfo>>& camera_frames,const std::map<int, std::vector<std::pair<int, int>>>& all_object_centers) {
-    for (const auto& [camera_id, frames] : camera_frames) {
-        if (frames.empty()) continue;
+        for (const auto& [camera_id, frames] : camera_frames) {
+            if (frames.empty()) continue;
 
-        // use the last frame as the base image
-        Image base_img;
-        load_image(frames.back().image_file, base_img); 
+            // use the last frame as the base image
+            Image base_img;
+            load_image(frames.back().image_file, base_img); 
 
-        const auto& all_centers = all_object_centers.at(camera_id);
+            const auto& all_centers = all_object_centers.at(camera_id);
 
-        std::string flight_path_dir = "motion_output/flight_paths";
-        std::filesystem::create_directories(flight_path_dir);
+            std::string flight_path_dir = "motion_output/flight_paths";
+            std::filesystem::create_directories(flight_path_dir);
 
-        std::string output_name = "motion_camera" + std::to_string(camera_id) + "_flight_path.png";
-        std::string output_path = flight_path_dir + "/" + output_name;
+            std::string output_name = "motion_camera" + std::to_string(camera_id) + "_flight_path.png";
+            std::string output_path = flight_path_dir + "/" + output_name;
 
-        visualize_flight_path(base_img, all_centers, output_path);
+            visualize_flight_path(base_img, all_centers, output_path);
+        }
     }
-}
 
     void generate_voxel_grid(const std::string& metadata_file_path, const float detect_motion_threshold) {
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
@@ -200,7 +201,10 @@ namespace ptv {
 
         std::map<int, std::vector<std::pair<int, int>>> all_object_centers; // for flight path
 
-        for (const auto& [camera_id, frames] : camera_frames) {
+        for (const std::pair<int, std::vector<ptv::FrameInfo>>& camera_frames_pair : camera_frames) {
+            int camera_id = camera_frames_pair.first;
+            const std::vector<ptv::FrameInfo>& frames = camera_frames_pair.second;
+
             if (frames.size() < 2) {
                 std::cerr << "WARNING: Camera " << camera_id << " has less than 2 frames, skipping" << std::endl;
                 continue;
@@ -253,6 +257,5 @@ namespace ptv {
             }
             prev_img.reset();
         }
-        generate_flight_path_images(camera_frames, all_object_centers);
     }
 } // namespace ptv 

@@ -23,7 +23,7 @@ namespace ptv {
         }
 
         // Overlay red for motion pixels
-        for (const auto& p : detection.pixels_with_motion) {
+        for (const ptv::PixelChange& p : detection.pixels_with_motion) {
             float abs_change = std::abs(p.change);
             float alpha = abs_change / 255.0f;
             unsigned char original = static_cast<unsigned char>(curr_img.pixels[p.y * curr_img.width + p.x]);
@@ -34,7 +34,7 @@ namespace ptv {
         }
 
         // Overlay green for center pixels
-        for (const auto& center : centers) {
+        for (const std::pair<int, int>& center : centers) {
             int x = center.first;
             int y = center.second;
             if (x >= 0 && x < curr_img.width && y >= 0 && y < curr_img.height) {
@@ -49,39 +49,40 @@ namespace ptv {
     }
 
     void visualize_flight_path(const Image& base_img, const std::vector<std::pair<int, int>>& all_centers, const std::string& output_path) {
-    std::vector<unsigned char> rgb_data(base_img.width * base_img.height * 3);
+        std::vector<unsigned char> rgb_data(base_img.width * base_img.height * 3);
 
-    for (int y = 0; y < base_img.height; y++) {
-        for (int x = 0; x < base_img.width; x++) {
-            unsigned char val = static_cast<unsigned char>(base_img.pixels[y * base_img.width + x]);
-            int idx = (y * base_img.width + x) * 3;
-            rgb_data[idx] = val;
-            rgb_data[idx + 1] = val;
-            rgb_data[idx + 2] = val;
-        }
-    }
-
-    // overlay green for all object centers (past path)
-    for (size_t i = 0; i < all_centers.size(); ++i) {
-        int x = all_centers[i].first;
-        int y = all_centers[i].second;
-        if (x >= 0 && x < base_img.width && y >= 0 && y < base_img.height) {
-            int idx = (y * base_img.width + x) * 3;
-
-            if (i == all_centers.size() - 1) {
-                // last position in red
-                rgb_data[idx] = 255;      // red
-                rgb_data[idx + 1] = 0;    // green
-                rgb_data[idx + 2] = 0;    // blue
-            } else {
-                // past positions in green
-                rgb_data[idx] = 0;        // red
-                rgb_data[idx + 1] = 255;  // green
-                rgb_data[idx + 2] = 0;    // blue
+        for (int y = 0; y < base_img.height; y++) {
+            for (int x = 0; x < base_img.width; x++) {
+                unsigned char val = static_cast<unsigned char>(base_img.pixels[y * base_img.width + x]);
+                int idx = (y * base_img.width + x) * 3;
+                rgb_data[idx] = val;
+                rgb_data[idx + 1] = val;
+                rgb_data[idx + 2] = val;
             }
         }
+
+        // overlay green for all object centers (past path)
+        for (size_t i = 0; i < all_centers.size(); ++i) {
+            int x = all_centers[i].first;
+            int y = all_centers[i].second;
+            if (x >= 0 && x < base_img.width && y >= 0 && y < base_img.height) {
+                int idx = (y * base_img.width + x) * 3;
+
+                if (i == all_centers.size() - 1) {
+                    // last position in red
+                    rgb_data[idx] = 255;      // red
+                    rgb_data[idx + 1] = 0;    // green
+                    rgb_data[idx + 2] = 0;    // blue
+                } else {
+                    // past positions in green
+                    rgb_data[idx] = 0;        // red
+                    rgb_data[idx + 1] = 255;  // green
+                    rgb_data[idx + 2] = 0;    // blue
+                }
+            }
+        }
+
+        stbi_write_png(output_path.c_str(), base_img.width, base_img.height, 3, rgb_data.data(), base_img.width * 3);
     }
 
-    stbi_write_png(output_path.c_str(), base_img.width, base_img.height, 3, rgb_data.data(), base_img.width * 3);
-}
 } // namespace ptv 
