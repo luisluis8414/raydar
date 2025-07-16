@@ -6,7 +6,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
-namespace ptv {
+namespace raydar {
 
     void visualize_motion(const Image& curr_img, const DetectionArray& detection, const std::string& output_path, const std::vector<std::pair<int, int>>& centers) {
         std::vector<unsigned char> rgb_data(curr_img.width * curr_img.height * 3);
@@ -23,7 +23,7 @@ namespace ptv {
         }
 
         // Overlay red for motion pixels
-        for (const ptv::PixelChange& p : detection.pixels_with_motion) {
+        for (const raydar::PixelChange& p : detection.pixels_with_motion) {
             float abs_change = std::abs(p.change);
             float alpha = abs_change / 255.0f;
             unsigned char original = static_cast<unsigned char>(curr_img.pixels[p.y * curr_img.width + p.x]);
@@ -79,4 +79,4 @@ namespace ptv {
         stbi_write_png(output_path.c_str(), base_img.width, base_img.height, 3, rgb_data.data(), base_img.width * 3);
     }
 
-} // namespace ptv 
+} // namespace raydar 

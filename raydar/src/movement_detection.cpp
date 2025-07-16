@@ -20,7 +20,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-namespace ptv {
+namespace raydar {
     struct SkewResult {
         bool valid;
         float distance;
@@ -59,9 +59,9 @@ namespace ptv {
                 info.camera_position.z() = frame["camera_position"]["Z"];
 
                 // Find the insertion point to maintain sorted order
-                std::vector<ptv::FrameInfo>& frames = camera_frames[info.camera_index];
-                std::vector<ptv::FrameInfo>::iterator insert_pos = std::lower_bound(frames.begin(), frames.end(), info,
-                    [](const ptv::FrameInfo& a, const ptv::FrameInfo& b) {
+                std::vector<raydar::FrameInfo>& frames = camera_frames[info.camera_index];
+                std::vector<raydar::FrameInfo>::iterator insert_pos = std::lower_bound(frames.begin(), frames.end(), info,
+                    [](const raydar::FrameInfo& a, const raydar::FrameInfo& b) {
                         return a.frame_index < b.frame_index;
                     });
                 frames.insert(insert_pos, info);
@@ -124,7 +124,7 @@ namespace ptv {
 
         // store all detected pixel movement in a set for efficiency
         std::set<std::pair<int, int>> unprocessed_pixels;
-        for (const ptv::PixelChange& p : da.pixels_with_motion) {
+        for (const raydar::PixelChange& p : da.pixels_with_motion) {
             unprocessed_pixels.insert({ p.x, p.y });
         }
 
@@ -356,15 +356,15 @@ namespace ptv {
         }
     }
 
-    void generate_voxel_grid(const std::string& metadata_file_path, float detect_motion_threshold, float min_distance) {
+    void detect_objects(const std::string& metadata_file_path, float detect_motion_threshold, float min_distance) {
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
         std::map<int, std::map<int, std::vector<Eigen::Vector3f>>> rays;
         std::map<int, std::map<int, Eigen::Vector3f>> camera_positions;
         std::map<int, std::vector<std::pair<int, int>>> all_object_centers; // for flight path
 
-        for (std::map<int, std::vector<ptv::FrameInfo>>::const_iterator camera_frames_pair = camera_frames.begin(); camera_frames_pair != camera_frames.end(); ++camera_frames_pair) {
+        for (std::map<int, std::vector<raydar::FrameInfo>>::const_iterator camera_frames_pair = camera_frames.begin(); camera_frames_pair != camera_frames.end(); ++camera_frames_pair) {
             int camera_id = camera_frames_pair->first;
-            const std::vector<ptv::FrameInfo>& frames = camera_frames_pair->second;
+            const std::vector<raydar::FrameInfo>& frames = camera_frames_pair->second;
             if (frames.size() < 2) {
                 std::cerr << "WARNING: Camera " << camera_id << " has less than 2 frames, skipping" << std::endl;
                 continue;
@@ -410,4 +410,4 @@ namespace ptv {
         std::map<int, std::vector<Eigen::Vector3f>> frame_points = compute_3d_points(rays, camera_positions, min_distance);
         write_3d_points_to_file(frame_points, "3d_points.txt");
     }
-} // namespace ptv
+} // namespace raydar

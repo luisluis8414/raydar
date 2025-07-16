@@ -3,7 +3,7 @@
 #include <vector>
 #include <Eigen/Dense>
 
-namespace ptv {
+namespace raydar {
 
     /**
      * @brief Contains metadata about a single camera frame
@@ -45,7 +45,7 @@ namespace ptv {
     };
 
     /**
-     * @brief Generates a voxel grid from camera metadata and image data
+     * @brief Detects objects in 3D space from camera metadata and image data
      *
      * @param metadata_file_path Path to the JSON metadata file
      * @param detect_motion_threshold Threshold value for motion detection between frames
@@ -57,6 +57,6 @@ namespace ptv {
      *          3. Generate rays from camera positions through motion centers
      *          4. Create visualization output for debugging
      */
-    void generate_voxel_grid(const std::string& metadata_file_path, float detect_motion_threshold, float min_distance = 5.0f);
+    void detect_objects(const std::string& metadata_file_path, float detect_motion_threshold, float min_distance = 5.0f);
 
-} // namespace ptv 
+} // namespace raydar 
