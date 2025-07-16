@@ -14,6 +14,7 @@
 #include <utility> 
 
 #include <nlohmann/json.hpp>
+#include <Eigen/Dense>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -39,17 +40,17 @@ namespace ptv {
                 info.frame_index = frame["frame_index"];
 
                 // Parse camera rotation
-                info.camera_rotation.X = frame["camera_rotation"]["X"];
-                info.camera_rotation.Y = frame["camera_rotation"]["Y"];
-                info.camera_rotation.Z = frame["camera_rotation"]["Z"];
+                info.camera_rotation.x() = frame["camera_rotation"]["X"];
+                info.camera_rotation.y() = frame["camera_rotation"]["Y"];
+                info.camera_rotation.z() = frame["camera_rotation"]["Z"];
 
                 info.fov_degrees = frame["fov_degrees"];
                 info.image_file = frame["image_file"];
 
                 // Parse camera position
-                info.camera_position.X = frame["camera_position"]["X"];
-                info.camera_position.Y = frame["camera_position"]["Y"];
-                info.camera_position.Z = frame["camera_position"]["Z"];
+                info.camera_position.x() = frame["camera_position"]["X"];
+                info.camera_position.y() = frame["camera_position"]["Y"];
+                info.camera_position.z() = frame["camera_position"]["Z"];
 
                 // Find the insertion point to maintain sorted order
                 std::vector<ptv::FrameInfo>& frames = camera_frames[info.camera_index];
@@ -111,7 +112,7 @@ namespace ptv {
         return detection_array;
     }
 
-    // use a flood fill method to group connected pixels into objects and calculate their centers 
+    // use a flood fill method to group connected pixels into objects and calculate their centers
     // this reduces the total number of rays by focusing on object centers instead of every individual pixel
     std::vector<std::pair<int, int>> find_object_centers(const DetectionArray& da) {
 
@@ -147,7 +148,7 @@ namespace ptv {
                 sum_y += y;
                 ++count;
 
-                // check all neighbours of the current pixel (3x3) 
+                // check all neighbours of the current pixel (3x3)
                 for (int dx = -2; dx <= 2; ++dx) {
                     for (int dy = -2; dy <= 2; ++dy) {
                         if (dx == 0 && dy == 0) continue;
@@ -178,7 +179,7 @@ namespace ptv {
 
             // use the last frame as the base image
             Image base_img;
-            load_image(frames.back().image_file, base_img); 
+            load_image(frames.back().image_file, base_img);
 
             const auto& all_centers = all_object_centers.at(camera_id);
 
@@ -195,9 +196,8 @@ namespace ptv {
     void generate_voxel_grid(const std::string& metadata_file_path, const float detect_motion_threshold) {
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
 
-        std::map<int, std::map<int, std::vector<Vec3>>> rays;
-
-        std::map<int, std::map<int, Vec3>> camera_positions;
+        std::map<int, std::map<int, std::vector<Eigen::Vector3f>>> rays;
+        std::map<int, std::map<int, Eigen::Vector3f>> camera_positions;
 
         std::map<int, std::vector<std::pair<int, int>>> all_object_centers; // for flight path
 
@@ -247,9 +247,9 @@ namespace ptv {
                 for (const std::pair<int, int>& center : object_centers) {
                     int x = center.first;
                     int y = center.second;
-                    Vec3 dir = get_ray_direction(curr_info, x, y, curr_img.width, curr_img.height);
+                    Eigen::Vector3f dir = get_ray_direction(curr_info, x, y, curr_img.width, curr_img.height);
                     rays[camera_id][curr_info.frame_index].push_back(dir);
-                    camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position;
+                    camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position; // Already Eigen::Vector3f
                 }
 
                 prev_img = curr_img;
@@ -259,4 +259,4 @@ namespace ptv {
         }
         generate_flight_path_images(camera_frames, all_object_centers);
     }
-} // namespace ptv 
+} // namespace ptv

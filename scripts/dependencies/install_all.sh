@@ -11,4 +11,7 @@ bash "$SCRIPT_DIR/install_stb.sh"
 echo "Installing nlohmann/json..."
 bash "$SCRIPT_DIR/install_nlohmann_json.sh"
 
+echo "Installing eigen..."
+bash "$SCRIPT_DIR/install_eigen.sh"
+
 echo "All dependencies installed successfully."

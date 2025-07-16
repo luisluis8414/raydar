@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Eigen/Dense>
 #include "movement_detection.hpp"
 
 namespace ptv {
@@ -8,14 +9,7 @@ namespace ptv {
 #define M_PI 3.14159265358979323846f
 #endif
 
-    /**
-     * @brief Normalizes a 3D vector to unit length
-     *
-     * @param v Input vector to normalize
-     * @return Vec3 Normalized vector with length 1
-     */
-    Vec3 normalize(const Vec3& v);
-
+ 
     /**
      * @brief Applies Euler angle rotation to a vector
      *
@@ -23,7 +17,7 @@ namespace ptv {
      * @param euler_deg Euler angles in degrees (XYZ order)
      * @return Vec3 Rotated vector
      */
-    Vec3 apply_rotation(const Vec3& v, const Vec3& euler_deg);
+    Eigen::Vector3f apply_rotation(const Eigen::Vector3f& v, const Eigen::Vector3f& euler_deg);
 
     /**
      * @brief Calculates the ray direction from camera through a pixel
@@ -35,6 +29,6 @@ namespace ptv {
      * @param img_height Height of the image in pixels
      * @return Vec3 Normalized direction vector from camera through the pixel
      */
-    Vec3 get_ray_direction(const FrameInfo& info, int pixel_x, int pixel_y, int img_width, int img_height);
+    Eigen::Vector3f get_ray_direction(const FrameInfo& info, int pixel_x, int pixel_y, int img_width, int img_height);
 
 } // namespace ptv 

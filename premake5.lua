@@ -23,6 +23,7 @@ workspace "VoxVision"
             ".",
             "movement_detection/include",
             "deps",
+            "deps/eigen-3.4.0",
             "/usr/include",
             "/usr/local/include"
         }
@@ -50,7 +51,8 @@ project "movement_detection"
     
     includedirs {
         "%{wks.location}/movement_detection/include",
-        "%{wks.location}/deps"
+        "%{wks.location}/deps",
+        "%{wks.location}/deps/eigen-3.4.0"
     }
 
     filter { "toolset:clang" }
@@ -66,5 +68,6 @@ project "Playground"
     links { "movement_detection" }
     includedirs { 
         "movement_detection/include",
-        "deps"
+        "deps",
+        "deps/eigen-3.4.0"
     }
