@@ -2,17 +2,18 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <Eigen/Dense>
 
 namespace ptv {
 
     /**
      * @brief A 3D vector structure representing coordinates or directions in 3D space
-     */
-    struct Vec3 {
-        float X;  ///< X component of the vector
-        float Y;  ///< Y component of the vector
-        float Z;  ///< Z component of the vector
-    };
+    //  */
+    // struct Vec3 {
+    //     float X;  ///< X component of the vector
+    //     float Y;  ///< Y component of the vector
+    //     float Z;  ///< Z component of the vector
+    // };
 
     /**
      * @brief Contains metadata about a single camera frame
@@ -20,10 +21,10 @@ namespace ptv {
     struct FrameInfo {
         int camera_index;      ///< Unique identifier for the camera
         int frame_index;       ///< Sequential frame number in the camera's sequence
-        Vec3 camera_rotation;  ///< Camera rotation in degrees (XYZ Euler angles)
+        Eigen::Vector3f camera_rotation;  ///< Camera rotation in degrees (XYZ Euler angles)
         float fov_degrees;     ///< Field of view in degrees
         std::string image_file; ///< Path to the corresponding image file
-        Vec3 camera_position;  ///< Camera position in world space coordinates
+        Eigen::Vector3f camera_position;  ///< Camera position in world space coordinates
     };
 
     /**

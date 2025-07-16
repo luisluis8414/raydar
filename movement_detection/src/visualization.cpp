@@ -61,24 +61,18 @@ namespace ptv {
             }
         }
 
-        // overlay green for all object centers (past path)
+        // overlay green for all object centers (path)
         for (size_t i = 0; i < all_centers.size(); ++i) {
             int x = all_centers[i].first;
             int y = all_centers[i].second;
             if (x >= 0 && x < base_img.width && y >= 0 && y < base_img.height) {
                 int idx = (y * base_img.width + x) * 3;
 
-                if (i == all_centers.size() - 1) {
-                    // last position in red
-                    rgb_data[idx] = 255;      // red
-                    rgb_data[idx + 1] = 0;    // green
-                    rgb_data[idx + 2] = 0;    // blue
-                } else {
                     // past positions in green
                     rgb_data[idx] = 0;        // red
                     rgb_data[idx + 1] = 255;  // green
                     rgb_data[idx + 2] = 0;    // blue
-                }
+                
             }
         }
 
