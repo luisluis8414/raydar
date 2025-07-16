@@ -1,6 +1,6 @@
-# VoxVision
+# Raydar
 
-A C++ project for voxel graphics processing.
+A C++ project for detecting objects in 3D space using 2D Cameras. 
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ Before cloning the repository, make sure Git LFS is installed:
 git lfs install
 
 # Clone the repository
-git clone https://github.com/luisluis8414/vox_vision.git
+git clone https://github.com/luisluis8414/raydar.git
 ```
 
 If you've already cloned without LFS, run:

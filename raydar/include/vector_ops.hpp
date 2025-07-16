@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include "movement_detection.hpp"
 
-namespace ptv {
+namespace raydar {
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -31,4 +31,4 @@ namespace ptv {
      */
     Eigen::Vector3f get_ray_direction(const FrameInfo& info, int pixel_x, int pixel_y, int img_width, int img_height);
 
-} // namespace ptv 
+} // namespace raydar 

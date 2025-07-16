@@ -1,6 +1,6 @@
 -- premake5.lua
 
-workspace "VoxVision"
+workspace "Raydar"
     configurations { "Debug", "Release" }
     language "C++"
     cppdialect "C++17"
@@ -21,7 +21,7 @@ workspace "VoxVision"
         }
         includedirs { 
             ".",
-            "movement_detection/include",
+            "raydar/include",
             "deps",
             "deps/eigen-3.4.0",
             "/usr/include",
@@ -39,24 +39,24 @@ workspace "VoxVision"
         optimize "On"
         runtime "Release"
 
-project "movement_detection"
+project "raydar"
     kind "StaticLib"
-    location "movement_detection"
+    location "raydar"
     
     files {
-        "movement_detection/src/**.cpp",
-        "movement_detection/include/**.hpp",
-        "movement_detection/include/**.h"
+        "raydar/src/**.cpp",
+        "raydar/include/**.hpp",
+        "raydar/include/**.h"
     }
     
     includedirs {
-        "%{wks.location}/movement_detection/include",
+        "%{wks.location}/raydar/include",
         "%{wks.location}/deps",
         "%{wks.location}/deps/eigen-3.4.0"
     }
 
     filter { "toolset:clang" }
-        buildoptions { "-I%{wks.location}/movement_detection/include" }
+        buildoptions { "-I%{wks.location}/raydar/include" }
 
 project "Playground"
     kind "ConsoleApp"
@@ -64,10 +64,10 @@ project "Playground"
     
     files { "%{prj.location}/**.cpp" }
     
-    -- Link against movement_detection library
-    links { "movement_detection" }
+    -- Link against raydar library
+    links { "raydar" }
     includedirs { 
-        "movement_detection/include",
+        "raydar/include",
         "deps",
         "deps/eigen-3.4.0"
     }

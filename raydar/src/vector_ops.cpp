@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
-namespace ptv {
+namespace raydar {
 
     Eigen::Vector3f apply_rotation(const Eigen::Vector3f& v, const Eigen::Vector3f& euler_deg) {
         float rx_rad = euler_deg.x() * (M_PI / 180.0f);
@@ -42,4 +42,4 @@ namespace ptv {
         return world_dir;
     }
 
-} // namespace ptv
+} // namespace raydar

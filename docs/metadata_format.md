@@ -80,8 +80,8 @@ The metadata file contains camera and frame information used by the movement_det
 Place your metadata file in the `data` directory. The file can then be loaded using:
 
 ```cpp
-ptv::movement_detection converter;
-std::vector<ptv::FrameInfo> frames = converter.loadMetadata("data/metadata.json");
+raydar::movement_detection converter;
+std::vector<raydar::FrameInfo> frames = converter.loadMetadata("data/metadata.json");
 ```
 
 ## Validation
