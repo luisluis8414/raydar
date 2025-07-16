@@ -1,6 +1,7 @@
 #include "movement_detection.hpp"
 #include "vector_ops.hpp"
 #include "visualization.hpp"
+#include "logger.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -194,6 +195,10 @@ namespace ptv {
     }
 
     void generate_voxel_grid(const std::string& metadata_file_path, const float detect_motion_threshold) {
+        if (!logger::initialize()) {
+        std::cerr << "WARN: Logging system failed to initialize\n";
+        return;
+    }
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
 
         std::map<int, std::map<int, std::vector<Eigen::Vector3f>>> rays;
@@ -249,7 +254,10 @@ namespace ptv {
                     int y = center.second;
                     Eigen::Vector3f dir = get_ray_direction(curr_info, x, y, curr_img.width, curr_img.height);
                     rays[camera_id][curr_info.frame_index].push_back(dir);
-                    camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position; // Already Eigen::Vector3f
+                    camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position;
+
+                    logger::log_ray_directions(camera_id, curr_info.frame_index, x, y, curr_info.camera_position, dir);
+                    logger::log_formatted_ray(curr_info.camera_position, dir, 2000, camera_id, curr_info.frame_index);
                 }
 
                 prev_img = curr_img;
@@ -258,5 +266,7 @@ namespace ptv {
             prev_img.reset();
         }
         generate_flight_path_images(camera_frames, all_object_centers);
+
+        logger::shutdown();
     }
 } // namespace ptv
