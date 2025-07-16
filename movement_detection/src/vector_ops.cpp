@@ -14,7 +14,7 @@ namespace ptv {
         Eigen::AngleAxisf rotation_y(ry_rad, Eigen::Vector3f::UnitY());
         Eigen::AngleAxisf rotation_z(rz_rad, Eigen::Vector3f::UnitZ());
 
-        Eigen::Quaternionf rotation_quat = rotation_x * rotation_y * rotation_z;
+        Eigen::Quaternionf rotation_quat = rotation_z * rotation_y * rotation_x;
 
         return rotation_quat * v;
     }
