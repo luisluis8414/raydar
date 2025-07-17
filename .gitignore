@@ -91,3 +91,5 @@ deps/
 .cache/
 
 motion_output
+
+3d_points.txt
