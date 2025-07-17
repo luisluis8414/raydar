@@ -1,6 +1,7 @@
 #include "movement_detection.hpp"
 #include "vector_ops.hpp"
 #include "visualization.hpp"
+#include "logger.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -50,7 +51,7 @@ namespace raydar {
                 info.camera_rotation.y() = frame["camera_rotation"]["Y"];
                 info.camera_rotation.z() = frame["camera_rotation"]["Z"];
 
-                info.fov_degrees = frame["fov_degrees"];
+                info.FOV_deg = frame["fov_degrees"];
                 info.image_file = frame["image_file"];
 
                 // Parse camera position
@@ -189,24 +190,24 @@ namespace raydar {
         float dr = d.dot(r);
         float ds = d.dot(s);
         float det = rr * ss - rs * rs;
-        
+
         if (std::abs(det) < 1e-4f) {
             res.valid = false;
             res.distance = std::numeric_limits<float>::infinity();
             res.midpoint = Eigen::Vector3f::Zero();
             return res;
         }
-        
+
         float lambda = -(ss * dr - rs * ds) / det;
         float mu = -(rs * dr - rr * ds) / det;
-        
+
         if (lambda < 0.0f || mu < 0.0f) {
             res.valid = false;
             res.distance = std::numeric_limits<float>::infinity();
             res.midpoint = Eigen::Vector3f::Zero();
             return res;
         }
-        
+
         Eigen::Vector3f F = p + lambda * r;
         Eigen::Vector3f G = q + mu * s;
         res.midpoint = 0.5f * (F + G);
@@ -215,10 +216,29 @@ namespace raydar {
         return res;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     std::map<int, std::vector<Eigen::Vector3f>> compute_3d_points(
         const std::map<int, std::map<int, std::vector<Eigen::Vector3f>>>& rays,
         const std::map<int, std::map<int, Eigen::Vector3f>>& camera_positions,
         float min_distance) {
+
+        // all frames with where at least one camera has rays
         std::set<int> all_frames;
         for (std::map<int, std::map<int, std::vector<Eigen::Vector3f>>>::const_iterator cam = rays.begin(); cam != rays.end(); ++cam) {
             for (std::map<int, std::vector<Eigen::Vector3f>>::const_iterator frm = cam->second.begin(); frm != cam->second.end(); ++frm) {
@@ -227,9 +247,15 @@ namespace raydar {
                 }
             }
         }
+
+        // all intersection points per frame
         std::map<int, std::vector<Eigen::Vector3f>> frame_points;
+
+        // for all relevant frames
         for (std::set<int>::const_iterator frame_it = all_frames.begin(); frame_it != all_frames.end(); ++frame_it) {
             int frame = *frame_it;
+
+            //find all cams with rays for the frame 
             std::vector<int> active_cameras;
             for (std::map<int, std::map<int, std::vector<Eigen::Vector3f>>>::const_iterator cam = rays.begin(); cam != rays.end(); ++cam) {
                 int cam_id = cam->first;
@@ -262,17 +288,17 @@ namespace raydar {
             std::vector<Eigen::Vector3f> valid_points;
             struct RecurseHelper {
                 static void recurse(const std::vector<std::vector<Eigen::Vector3f>>& frame_rays,
-                                   const std::vector<Eigen::Vector3f>& frame_pos,
-                                   const std::vector<int>& num_rays_per_cam,
-                                   float min_distance,
-                                   std::vector<Eigen::Vector3f>& valid_points,
-                                   int N,
-                                   int cam_idx,
-                                   std::vector<int>& choice) {
+                    const std::vector<Eigen::Vector3f>& frame_pos,
+                    const std::vector<int>& num_rays_per_cam,
+                    float min_distance,
+                    std::vector<Eigen::Vector3f>& valid_points,
+                    int N,
+                    int cam_idx,
+                    std::vector<int>& choice) {
                     if (cam_idx == N) {
                         std::vector<std::pair<Eigen::Vector3f, Eigen::Vector3f>> selected(N);
                         for (size_t i = 0; i < static_cast<size_t>(N); ++i) {
-                            selected[i] = {frame_pos[i], frame_rays[i][choice[i]]};
+                            selected[i] = { frame_pos[i], frame_rays[i][choice[i]] };
                         }
                         bool is_valid = true;
                         std::vector<Eigen::Vector3f> midpoints;
@@ -287,7 +313,8 @@ namespace raydar {
                                 SkewResult res = closest_point_between_rays(p, r, q, s);
                                 if (!res.valid || res.distance > min_distance) {
                                     is_valid = false;
-                                } else {
+                                }
+                                else {
                                     midpoints.push_back(res.midpoint);
                                 }
                             }
@@ -315,6 +342,28 @@ namespace raydar {
         return frame_points;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     void write_3d_points_to_file(const std::map<int, std::vector<Eigen::Vector3f>>& frame_points, const std::string& output_file) {
         std::ofstream out(output_file);
         if (!out.is_open()) {
@@ -334,7 +383,7 @@ namespace raydar {
         }
     }
 
-    void generate_flight_path_images(const std::map<int, std::vector<FrameInfo>>& camera_frames,const std::map<int, std::vector<std::pair<int, int>>>& all_object_centers) {
+    void generate_flight_path_images(const std::map<int, std::vector<FrameInfo>>& camera_frames, const std::map<int, std::vector<std::pair<int, int>>>& all_object_centers) {
         for (std::map<int, std::vector<FrameInfo>>::const_iterator cam = camera_frames.begin(); cam != camera_frames.end(); ++cam) {
             int camera_id = cam->first;
             const std::vector<FrameInfo>& frames = cam->second;
@@ -357,6 +406,11 @@ namespace raydar {
     }
 
     void detect_objects(const std::string& metadata_file_path, float detect_motion_threshold, float min_distance) {
+        if (!logger::initialize()) {
+            std::cerr << "WARN: Logging system failed to initialize\n";
+            return;
+        }
+
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
         std::map<int, std::map<int, std::vector<Eigen::Vector3f>>> rays;
         std::map<int, std::map<int, Eigen::Vector3f>> camera_positions;
@@ -399,7 +453,10 @@ namespace raydar {
                     int y = center.second;
                     Eigen::Vector3f dir = get_ray_direction(curr_info, x, y, curr_img.width, curr_img.height);
                     rays[camera_id][curr_info.frame_index].push_back(dir);
-                    camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position; // Already Eigen::Vector3f
+                    camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position;
+
+                    logger::log_ray_directions(camera_id, curr_info.frame_index, x, y, curr_info.camera_position, dir);
+                    logger::log_formatted_ray(curr_info.camera_position, dir, 2000, camera_id, curr_info.frame_index);
                 }
                 prev_img = curr_img;
                 prev_info = curr_info;
@@ -409,5 +466,7 @@ namespace raydar {
         generate_flight_path_images(camera_frames, all_object_centers);
         std::map<int, std::vector<Eigen::Vector3f>> frame_points = compute_3d_points(rays, camera_positions, min_distance);
         write_3d_points_to_file(frame_points, "3d_points.txt");
+
+        logger::shutdown();
     }
 } // namespace raydar
