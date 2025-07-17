@@ -95,25 +95,37 @@ namespace raydar {
         stbi_image_free(data);
     }
 
-    DetectionArray detect_motion(const Image& prev_img, const Image& curr_img, float motion_threshold) {
+    DetectionArray detect_motion(const Image& prev_img, const Image& curr_img, const DetectionArray& prev_detection, float motion_threshold) {
         DetectionArray detection_array;
         detection_array.width = curr_img.width;
         detection_array.height = curr_img.height;
-
+    
         std::vector<PixelChange> pixels_with_motion;
 
+        // Create a set of previous detection coordinates for fast lookup
+        std::set<PixelChange> prev_detection_set;
+        for (size_t i = 0; i < prev_detection.pixels_with_motion.size(); i++) {
+            const PixelChange& prev_pixel_change = prev_detection.pixels_with_motion[i];
+            prev_detection_set.insert(PixelChange{prev_pixel_change.x, prev_pixel_change.y, prev_pixel_change.change});
+        }
+    
         for (int y = 0; y < curr_img.height; y++) {
             for (int x = 0; x < curr_img.width; x++) {
                 float prev_pixel = prev_img.pixels[y * prev_img.width + x];
                 float curr_pixel = curr_img.pixels[y * curr_img.width + x];
-
+    
                 float change = curr_pixel - prev_pixel;
                 if (abs(change) > motion_threshold) {
-                    pixels_with_motion.push_back({ x, y, change });
+                    // Check if this pixel is already in the previous detection set
+                    PixelChange current_pixel{x, y, change};
+                    if (prev_detection_set.find(current_pixel) == prev_detection_set.end()) {
+                        // Not found in previous detection, add to motion list
+                        pixels_with_motion.push_back(current_pixel);
+                    }
                 }
             }
         }
-
+    
         detection_array.pixels_with_motion = pixels_with_motion;
         return detection_array;
     }
@@ -357,6 +369,7 @@ namespace raydar {
     }
 
     void detect_objects(const std::string& metadata_file_path, float detect_motion_threshold, float min_distance) {
+
         std::map<int, std::vector<FrameInfo>> camera_frames = load_metadata(metadata_file_path);
         std::map<int, std::map<int, std::vector<Eigen::Vector3f>>> rays;
         std::map<int, std::map<int, Eigen::Vector3f>> camera_positions;
@@ -365,28 +378,38 @@ namespace raydar {
         for (std::map<int, std::vector<raydar::FrameInfo>>::const_iterator camera_frames_pair = camera_frames.begin(); camera_frames_pair != camera_frames.end(); ++camera_frames_pair) {
             int camera_id = camera_frames_pair->first;
             const std::vector<raydar::FrameInfo>& frames = camera_frames_pair->second;
+
             if (frames.size() < 2) {
                 std::cerr << "WARNING: Camera " << camera_id << " has less than 2 frames, skipping" << std::endl;
                 continue;
             }
+
             std::optional<Image> prev_img;
             FrameInfo prev_info;
+            DetectionArray prev_detection;
+
             for (size_t i = 0; i < frames.size(); i++) {
                 FrameInfo curr_info = frames[i];
                 Image curr_img;
                 load_image(curr_info.image_file, curr_img);
+
                 if (!prev_img.has_value()) {
                     prev_img = curr_img;
                     prev_info = curr_info;
                     continue;
                 }
-                DetectionArray detection_array = detect_motion(*prev_img, curr_img, detect_motion_threshold);
+
+                DetectionArray detection_array = detect_motion(*prev_img, curr_img, prev_detection, detect_motion_threshold);
+                prev_detection = detection_array;
+
                 std::vector<std::pair<int, int>> object_centers = find_object_centers(detection_array);
+
                 all_object_centers[camera_id].insert(
                     all_object_centers[camera_id].end(),
                     object_centers.begin(),
                     object_centers.end()
                 );
+
                 {
                     std::string output_dir = "motion_output";
                     std::string output_name = "motion_camera" + std::to_string(curr_info.camera_index) + "_frame" + std::to_string(curr_info.frame_index) + ".png";
@@ -394,6 +417,7 @@ namespace raydar {
                     std::filesystem::create_directories(output_dir);
                     visualize_motion(curr_img, detection_array, output_path, object_centers);
                 }
+
                 for (const std::pair<int, int>& center : object_centers) {
                     int x = center.first;
                     int y = center.second;
@@ -401,11 +425,12 @@ namespace raydar {
                     rays[camera_id][curr_info.frame_index].push_back(dir);
                     camera_positions[camera_id][curr_info.frame_index] = curr_info.camera_position; // Already Eigen::Vector3f
                 }
+
                 prev_img = curr_img;
                 prev_info = curr_info;
-                prev_img.reset(); // <-- skip every other frame pair
             }
         }
+
         generate_flight_path_images(camera_frames, all_object_centers);
         std::map<int, std::vector<Eigen::Vector3f>> frame_points = compute_3d_points(rays, camera_positions, min_distance);
         write_3d_points_to_file(frame_points, "3d_points.txt");

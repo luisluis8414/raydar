@@ -33,6 +33,12 @@ namespace raydar {
         int x;      ///< X coordinate of the pixel
         int y;      ///< Y coordinate of the pixel
         float change; ///< Magnitude of the change in pixel value
+
+
+        // comparison operator for use in std::set for motion_detection()
+        bool operator<(const PixelChange& other) const {
+            return (x < other.x) || (x == other.x && y < other.y);
+        }
     };
 
     /**
