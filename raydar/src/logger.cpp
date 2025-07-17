@@ -20,7 +20,7 @@ namespace logger {
             return false;
         }
 
-        g_formatted_log_file.open(log_dir + "/formatted_rays.log", std::ios::out | std::ios::trunc);
+        g_formatted_log_file.open(log_dir + "/rays_GeoGebra.log", std::ios::out | std::ios::trunc);
         if (!g_formatted_log_file) {
             std::cerr << "ERROR: Cannot open '" << log_dir + "/formatted_rays.log' for writing.\n";
             return false;

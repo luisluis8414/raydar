@@ -12,7 +12,7 @@ namespace raydar {
         int camera_index;      ///< Unique identifier for the camera
         int frame_index;       ///< Sequential frame number in the camera's sequence
         Eigen::Vector3f camera_rotation;  ///< Camera rotation in degrees (XYZ Euler angles)
-        float fov_degrees;     ///< Field of view in degrees
+        float FOV_deg;     ///< Field of view in degrees
         std::string image_file; ///< Path to the corresponding image file
         Eigen::Vector3f camera_position;  ///< Camera position in world space coordinates
     };
