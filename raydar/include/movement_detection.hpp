@@ -50,6 +50,23 @@ namespace raydar {
         std::vector<PixelChange> pixels_with_motion; ///< List of pixels where motion was detected
     };
 
+    struct SkewResult {
+        bool valid;     ///< indicates whether the calculation was successful (rays are not parallel or invalid)
+        float distance;     ///< the shortest distance between the two rays
+        Eigen::Vector3f midpoint;  ///< the midpoint of the shortest line connecting the two rays at their closest point
+    };
+
+    struct Ray {
+        int camera_id;             ///< the camera that generated this ray
+        Eigen::Vector3f ray;       ///< the direction vector of the ray in world coordinates
+        Eigen::Vector3f camera_position; ///< the position of the camera in world coordinates
+    };
+
+    struct RaysAtFrame {
+        int frame_id;              ///< the frame index (timestamp)
+        std::vector<Ray> rays;     ///< all rays from all cameras for this timestamp
+    };
+
     /**
      * @brief Detects objects in 3D space from camera metadata and image data
      *
