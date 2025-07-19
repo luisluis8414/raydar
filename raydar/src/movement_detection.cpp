@@ -380,10 +380,8 @@ void write_3d_points_to_file(
     const std::vector<Eigen::Vector3f> &points = it->second;
     for (size_t i = 0; i < points.size(); ++i) {
       const Eigen::Vector3f &pt = points[i];
-      int x = static_cast<int>(std::round(pt.x()));
-      int y = static_cast<int>(std::round(pt.y()));
-      int z = static_cast<int>(std::round(pt.z()));
-      out << frame << ": " << x << " " << y << " " << z << std::endl;
+      out << frame << ": " << pt.x() << " " << pt.y() << " " << pt.z()
+          << std::endl;
     }
   }
 }
