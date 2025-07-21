@@ -76,7 +76,6 @@ void fill_sparse_voxel_grid(SparseVoxelGrid& grid, const Eigen::Vector3f& ray_or
     if (!ray_aabb_intersection(ray_origin, ray_dir, extent.min, extent.max, t_entry, t_exit)) {
         return;
     }
-
     t_entry = std::max(t_entry, 0.0f);
     t_exit = std::min(t_exit, max_distance);
     if (t_entry >= t_exit)
@@ -84,43 +83,41 @@ void fill_sparse_voxel_grid(SparseVoxelGrid& grid, const Eigen::Vector3f& ray_or
 
     Eigen::Vector3f start_pos = ray_origin + t_entry * ray_dir;
 
-    Eigen::Vector3i voxel_idx;
-    voxel_idx[0] = static_cast<int>(std::floor((start_pos[0] - extent.min[0]) / extent.voxel_size));
-    voxel_idx[1] = static_cast<int>(std::floor((start_pos[1] - extent.min[1]) / extent.voxel_size));
-    voxel_idx[2] = static_cast<int>(std::floor((start_pos[2] - extent.min[2]) / extent.voxel_size));
+    // AW-Initialisierung
+    Eigen::Vector3i current_idx;
+    for (int i = 0; i < 3; ++i) {
+        current_idx[i] =
+            static_cast<int>(std::floor((start_pos[i] - extent.min[i]) / extent.voxel_size));
+    }
 
     Eigen::Vector3i step = ray_dir.cwiseSign().cast<int>();
+    Eigen::Vector3f t_delta = (extent.voxel_size / ray_dir.cwiseAbs().array()).matrix();
+    Eigen::Vector3f t_max = Eigen::Vector3f::Zero();
+    for (int i = 0; i < 3; ++i) {
+        if (step[i] != 0) {
+            float next_boundary =
+                extent.min[i] + (current_idx[i] + (step[i] > 0 ? 1 : 0)) * extent.voxel_size;
+            t_max[i] = (next_boundary - ray_origin[i]) / ray_dir[i];
+        } else {
+            t_max[i] = std::numeric_limits<float>::infinity();  // Handle parallel rays
+        }
+    }
 
-    Eigen::Vector3f next_boundary;
-    next_boundary[0] = extent.min[0] + (voxel_idx[0] + (step[0] > 0 ? 1 : 0)) * extent.voxel_size;
-    next_boundary[1] = extent.min[1] + (voxel_idx[1] + (step[1] > 0 ? 1 : 0)) * extent.voxel_size;
-    next_boundary[2] = extent.min[2] + (voxel_idx[2] + (step[2] > 0 ? 1 : 0)) * extent.voxel_size;
-
-    Eigen::Vector3f t_max = (next_boundary - ray_origin).cwiseQuotient(ray_dir);
-    Eigen::Vector3f t_delta =
-        Eigen::Vector3f(extent.voxel_size, extent.voxel_size, extent.voxel_size)
-            .cwiseQuotient(ray_dir.cwiseAbs());
-
-    for (float t_current = t_entry; t_current < t_exit;) {
-        auto key = std::make_tuple(voxel_idx[0], voxel_idx[1], voxel_idx[2]);
+    float t_current = t_entry;
+    while (t_current < t_exit) {
+        auto key = std::make_tuple(current_idx[0], current_idx[1], current_idx[2]);
         grid[key] += value;
 
+        // Finde Achse mit kleinstem t_max
         int axis = 0;
         if (t_max[1] < t_max[axis])
             axis = 1;
         if (t_max[2] < t_max[axis])
             axis = 2;
 
-        t_current = t_max[axis];
-        voxel_idx[axis] += step[axis];
+        t_current = std::min(t_max[axis], t_exit);  // Verhindere Übertritt
+        current_idx[axis] += step[axis];
         t_max[axis] += t_delta[axis];
-
-        Eigen::Vector3f current_pos = ray_origin + t_current * ray_dir;
-        if (current_pos[0] < extent.min[0] || current_pos[0] > extent.max[0] ||
-            current_pos[1] < extent.min[1] || current_pos[1] > extent.max[1] ||
-            current_pos[2] < extent.min[2] || current_pos[2] > extent.max[2]) {
-            break;
-        }
     }
 }
 
