@@ -50,11 +50,11 @@ struct DetectionArray {
 };
 
 struct SkewResult {
-    bool valid;      ///< indicates whether the calculation was successful (rays are not parallel or
-                     ///< invalid)
-    float distance;  ///< the shortest distance between the two rays
+    bool valid;  ///< indicates whether the calculation was successful (rays are not parallel or
+    ///< invalid)
+    float distance;            ///< the shortest distance between the two rays
     Eigen::Vector3f midpoint;  ///< the midpoint of the shortest line connecting the two rays at
-                               ///< their closest point
+    ///< their closest point
 };
 
 struct Ray {
