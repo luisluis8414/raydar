@@ -2,7 +2,7 @@ import open3d as o3d
 import struct
 import numpy as np
 import os
-
+# use meshlab or cloudcompare to visualize the .ply files
 def visualize_with_open3d(points, camera_positions, f35_positions):
     if not points:
         print("no points to visualize")

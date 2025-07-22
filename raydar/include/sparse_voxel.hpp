@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 #include "movement_detection.hpp"
 
@@ -31,7 +32,11 @@ bool ray_aabb_intersection(const Eigen::Vector3f& ray_origin, const Eigen::Vecto
 
 void fill_sparse_voxel_grid(SparseVoxelGrid& grid, const Eigen::Vector3f& ray_origin,
                             const Eigen::Vector3f& ray_dir, float value, float max_distance,
-                            const GridExtent& extent);
+                            const GridExtent& extent, float start_offset = 0.0f);
 
 void save_sparse_voxel_grid(const SparseVoxelGrid& grid, const std::string& output_file,
                             const GridExtent& extent);
+
+// extracts world coordinates of voxels with density >= threshold
+std::vector<Eigen::Vector3f> extract_high_density_points(const SparseVoxelGrid& grid,
+                                                         const GridExtent& extent, float threshold);

@@ -71,19 +71,21 @@ bool ray_aabb_intersection(const Eigen::Vector3f& ray_origin, const Eigen::Vecto
 // fills sparse voxel grid along ray path using dda traversal
 void fill_sparse_voxel_grid(SparseVoxelGrid& grid, const Eigen::Vector3f& ray_origin,
                             const Eigen::Vector3f& ray_dir, float value, float max_distance,
-                            const GridExtent& extent) {
+                            const GridExtent& extent, float start_offset) {
     float t_entry, t_exit;
     if (!ray_aabb_intersection(ray_origin, ray_dir, extent.min, extent.max, t_entry, t_exit)) {
         return;
     }
     t_entry = std::max(t_entry, 0.0f);
+    // apply start offset to skip initial voxels near camera
+    t_entry = std::max(t_entry, start_offset);
     t_exit = std::min(t_exit, max_distance);
     if (t_entry >= t_exit)
         return;
 
     Eigen::Vector3f start_pos = ray_origin + t_entry * ray_dir;
 
-    // AW-Initialisierung
+    // AW init
     Eigen::Vector3i current_idx;
     for (int i = 0; i < 3; ++i) {
         current_idx[i] =
@@ -108,14 +110,13 @@ void fill_sparse_voxel_grid(SparseVoxelGrid& grid, const Eigen::Vector3f& ray_or
         auto key = std::make_tuple(current_idx[0], current_idx[1], current_idx[2]);
         grid[key] += value;
 
-        // Finde Achse mit kleinstem t_max
         int axis = 0;
         if (t_max[1] < t_max[axis])
             axis = 1;
         if (t_max[2] < t_max[axis])
             axis = 2;
 
-        t_current = std::min(t_max[axis], t_exit);  // Verhindere Übertritt
+        t_current = std::min(t_max[axis], t_exit);
         current_idx[axis] += step[axis];
         t_max[axis] += t_delta[axis];
     }
@@ -145,4 +146,22 @@ void save_sparse_voxel_grid(const SparseVoxelGrid& grid, const std::string& outp
         ofs.write(reinterpret_cast<const char*>(&z), sizeof(int));
         ofs.write(reinterpret_cast<const char*>(&val), sizeof(float));
     }
+}
+
+// extracts world coordinates of voxels with density >= threshold
+std::vector<Eigen::Vector3f> extract_high_density_points(const SparseVoxelGrid& grid,
+                                                         const GridExtent& extent,
+                                                         float threshold) {
+    std::vector<Eigen::Vector3f> points;
+    for (const auto& entry : grid) {
+        auto [ix, iy, iz] = entry.first;
+        float val = entry.second;
+        if (val >= threshold) {
+            float x = extent.min.x() + (ix + 0.5f) * extent.voxel_size;
+            float y = extent.min.y() + (iy + 0.5f) * extent.voxel_size;
+            float z = extent.min.z() + (iz + 0.5f) * extent.voxel_size;
+            points.push_back({x, y, z});
+        }
+    }
+    return points;
 }
