@@ -93,3 +93,6 @@ deps/
 motion_output
 
 3d_points.txt
+sparse_voxel.bin
+raydar/visualize/visualize_output
+detected_objects.txt
